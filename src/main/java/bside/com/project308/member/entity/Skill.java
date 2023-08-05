@@ -9,6 +9,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -16,6 +18,7 @@ public class Skill extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "skill_id")
     private Long id;
+    @Column(unique = true)
     private String skillName;
     @Enumerated(EnumType.STRING)
     private Position position;
@@ -30,5 +33,18 @@ public class Skill extends BaseEntity {
 
     public static Skill of(String skillName, Position position, SkillCategory skillCategory) {
         return new Skill(skillName, position, skillCategory);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Skill skill = (Skill) o;
+        return Objects.equals(id, skill.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
