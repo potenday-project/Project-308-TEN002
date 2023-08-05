@@ -46,10 +46,10 @@ public class BasicMatchAlgorithm implements MatchAlgorithm{
                                                                                                         positions,
                                                                                                         member.getId());
         Set<Member> visitedMembers = visitRepository.findByFromMember(member).stream().map(Visit::getToMember).collect(Collectors.toSet());
-        Set<Member> collect = matchRepository.findByFromMemberOrToMember(member, member)
+        Set<Member> collect = matchRepository.findByFromMember(member)
                                              .stream()
                                              .parallel()
-                                             .map(match -> match.getMatchedTarget(member))
+                                             .map(Match::getToMember)
                                              .collect(Collectors.toSet());
 
         partnerCandidates.removeAll(visitedMembers);
