@@ -4,8 +4,11 @@ import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.InvalidAccessException;
 import bside.com.project308.common.exception.UnAuthorizedAccessException;
 import bside.com.project308.common.response.Response;
+import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.request.SignUpRequest;
+import bside.com.project308.member.repository.SkillRepository;
+import bside.com.project308.member.service.SkillService;
 import bside.com.project308.security.security.UserPrincipal;
 import bside.com.project308.member.dto.request.MemberUpdateRequest;
 import bside.com.project308.member.dto.response.MemberResponse;
@@ -19,11 +22,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/member")
 public class MemberController {
     private final MemberService memberService;
+    private final SkillService skillService;
 
     @GetMapping("/{memberId}")
     public ResponseEntity<Response> getMember(@PathVariable Long memberId,
@@ -64,9 +70,17 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Response.success(ResponseCode.SIGNUP_SUCCESS.getCode(), MemberResponse.from(memberDto)));
     }
 
+    @GetMapping("/skill")
+    public ResponseEntity<Response> getSkills(Position position) {
+        List<String> skill = skillService.getSkill(position);
+        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), skill));
+    }
+
     @GetMapping("/info")
     public ResponseEntity<Response> getMemberInfo(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         MemberDto memberInfo = memberService.getMemberInfo(userPrincipal.id());
         return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), MemberResponse.from(memberInfo)));
     }
+
+
 }
