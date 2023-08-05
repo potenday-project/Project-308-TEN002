@@ -42,6 +42,7 @@ public class MemberService {
         return MemberDto.from(member);
     }
 
+
     @Transactional(readOnly = true)
     public MemberDto getMemberInfo(Long memberId) {
         Member member = getMember(memberId);

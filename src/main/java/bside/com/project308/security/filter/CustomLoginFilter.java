@@ -72,7 +72,7 @@ public class CustomLoginFilter extends OncePerRequestFilter {
         log.info("login request {}", memberLoginRequest);
         try {
             MemberDto memberDto = memberService.getByUserProviderId(memberLoginRequest.user().providerUserId);
-            UserPrincipal userPrincipal = UserPrincipal.of(memberDto.id(), memberLoginRequest.user().providerUserId, memberLoginRequest.user().nickname, memberLoginRequest.user().imgUrl);
+            UserPrincipal userPrincipal = UserPrincipal.of(memberDto.id(), memberDto.userProviderId(), memberDto.username(), memberDto.password());
             Authentication authentication = new CustomAuthenticationToken(userPrincipal, userPrincipal.getAuthorities());
             successfulAuthentication(request, response, filterChain, authentication);
 
