@@ -3,10 +3,13 @@ package bside.com.project308.member.entity;
 import bside.com.project308.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@OnDelete(action = OnDeleteAction.CASCADE)
 @Getter
 @Entity
 public class Interest extends BaseEntity {
@@ -19,6 +22,7 @@ public class Interest extends BaseEntity {
     private String interest;
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
 
 

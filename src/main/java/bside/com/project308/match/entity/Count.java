@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ import java.util.Objects;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@OnDelete(action = OnDeleteAction.CASCADE)
 public class Count extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "count_id")
@@ -22,6 +25,7 @@ public class Count extends BaseTimeEntity {
 
     @OneToOne
     @JoinColumn(name = "member_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
     private Integer count;
     private LocalDateTime maxExhaustionTime;
