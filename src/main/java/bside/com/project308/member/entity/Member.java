@@ -8,6 +8,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import java.util.Objects;
@@ -42,9 +44,11 @@ public class Member extends BaseTimeEntity {
         this.imgUrl = imgUrl;
     }
 
-    public void updateMember(String username, Position position) {
-        this.username = username;
-        this.position = position;
+    public void updateMember(String username, Position position, String intro, String imgUrl) {
+        this.username = username == null ? this.username : username;
+        this.position = position == null ? this.position : position;
+        this.intro = intro == null ? this.intro : intro;
+        this.imgUrl = imgUrl == null ? this.imgUrl : imgUrl;
     }
 
     @Override

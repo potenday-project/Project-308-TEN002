@@ -5,12 +5,15 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Objects;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@OnDelete(action = OnDeleteAction.CASCADE)
 public class Visit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +24,7 @@ public class Visit {
     private Member fromMember;
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "to_member_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member toMember;
     private Boolean matchResult;
 

@@ -31,29 +31,31 @@ public class MemberController {
     private final MemberService memberService;
     private final SkillService skillService;
 
-    @GetMapping("/{memberId}")
-    public ResponseEntity<Response> getMember(@PathVariable Long memberId,
-                                              @AuthenticationPrincipal UserPrincipal userPrincipal) {
+/*    @GetMapping
+    public ResponseEntity<Response> getMember(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         Response result = Response.success(ResponseCode.SUCCESS.getCode(),
-                MemberResponse.from(memberService.getMemberInfo(memberId)));
+                MemberResponse.from(memberService.getMemberInfo(userPrincipal.id())));
         return ResponseEntity.status(HttpStatus.OK).body(result);
+    }*/
+    @GetMapping
+    public ResponseEntity<Response> getMemberInfo(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        MemberDto memberInfo = memberService.getMemberInfo(userPrincipal.id());
+        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), MemberResponse.from(memberInfo)));
     }
 
-    @PutMapping("/{memberId}")
-    public ResponseEntity<Response> updateMember(@PathVariable Long memberId,
-                                                 @AuthenticationPrincipal UserPrincipal userPrincipal,
+
+    @PutMapping
+    public ResponseEntity<Response> updateMember(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                  @RequestBody MemberUpdateRequest memberUpdateRequest) {
-        Response result = Response.success(ResponseCode.SUCCESS.getCode(),
-                MemberResponse.from(memberService.update(memberId, memberUpdateRequest)));
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        MemberDto updatedMember = memberService.update(userPrincipal.id(), memberUpdateRequest);
+
+        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.MEMBER_UPDATE_SUCCESS.getCode(), MemberResponse.from(updatedMember)));
     }
 
-    @DeleteMapping("/{memberId}")
-    public ResponseEntity<Response> deleteMember(@PathVariable Long memberId,
-                                                 @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        memberService.delete(memberId);
-        Response result = Response.success(ResponseCode.SUCCESS.getCode());
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+    @DeleteMapping
+    public ResponseEntity<Response> deleteMember(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        memberService.delete(userPrincipal.id());
+        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode()));
     }
 
     @PostMapping("/sign-up")
@@ -71,16 +73,13 @@ public class MemberController {
     }
 
     @GetMapping("/skill")
-    public ResponseEntity<Response> getSkills(Position position) {
-        List<String> skill = skillService.getSkill(position);
+    public ResponseEntity<Response> getSkills(@RequestParam String position) {
+
+        List<String> skill = skillService.getSkill(Position.valueOf(position));
         return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), skill));
     }
 
-    @GetMapping("/info")
-    public ResponseEntity<Response> getMemberInfo(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        MemberDto memberInfo = memberService.getMemberInfo(userPrincipal.id());
-        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), MemberResponse.from(memberInfo)));
-    }
+
 
 
 }

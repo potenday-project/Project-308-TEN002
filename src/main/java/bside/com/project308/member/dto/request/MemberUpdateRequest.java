@@ -4,11 +4,14 @@ import bside.com.project308.member.constant.Position;
 import lombok.Getter;
 import lombok.ToString;
 
-@Getter
-@ToString
-public class MemberUpdateRequest {
-    private Long id;
-    private String username;
-    private String password;
-    private Position position;
+import java.util.List;
+
+//todo : argument resolver 고려
+public record MemberUpdateRequest(String username,
+                                  String position,
+                                  String intro,
+                                  String imgUrl,
+                                  List<String> interest,
+                                  List<String> skill) {
+
 }
