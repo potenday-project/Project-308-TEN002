@@ -52,12 +52,10 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.MEMBER_UPDATE_SUCCESS.getCode(), MemberResponse.from(updatedMember)));
     }
 
-    @DeleteMapping("/{memberId}")
-    public ResponseEntity<Response> deleteMember(@PathVariable Long memberId,
-                                                 @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        memberService.delete(memberId);
-        Response result = Response.success(ResponseCode.SUCCESS.getCode());
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+    @DeleteMapping
+    public ResponseEntity<Response> deleteMember(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        memberService.delete(userPrincipal.id());
+        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode()));
     }
 
     @PostMapping("/sign-up")

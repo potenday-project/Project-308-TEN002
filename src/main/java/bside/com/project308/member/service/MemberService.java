@@ -3,6 +3,8 @@ package bside.com.project308.member.service;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.common.exception.UnAuthorizedAccessException;
+import bside.com.project308.match.repository.CountRepository;
+import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.constant.RegistrationSource;
 import bside.com.project308.member.dto.InterestDto;
@@ -36,6 +38,7 @@ public class MemberService {
     private final SkillMemberRepository skillMemberRepository;
     private final SkillRepository skillRepository;
     private final InterestRepository interestRepository;
+
 
     @Transactional(readOnly = true)
     public MemberDto getByUserProviderId(String userProviderId) {
