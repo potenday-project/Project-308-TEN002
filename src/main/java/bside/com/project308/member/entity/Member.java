@@ -42,9 +42,11 @@ public class Member extends BaseTimeEntity {
         this.imgUrl = imgUrl;
     }
 
-    public void updateMember(String username, Position position) {
-        this.username = username;
-        this.position = position;
+    public void updateMember(String username, Position position, String intro, String imgUrl) {
+        this.username = username == null ? this.username : username;
+        this.position = position == null ? this.position : position;
+        this.intro = intro == null ? this.intro : intro;
+        this.imgUrl = imgUrl == null ? this.imgUrl : imgUrl;
     }
 
     @Override
