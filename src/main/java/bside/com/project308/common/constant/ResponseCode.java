@@ -10,6 +10,7 @@ public enum ResponseCode {
     SIGNUP_SUCCESS(HttpStatus.OK, 1102, "회원가입 성공"),
     MEMBER_UPDATE_SUCCESS(HttpStatus.OK, 1103, "회원정보 수정 성공"),
     LIKE_POST_SUCCESS(HttpStatus.OK, 1201, "정상적으로 Like요청을 보냈습니다."),
+    BAD_REQUEST(HttpStatus.BAD_REQUEST, 4000, "비정상 접근"),
     NOT_AUTHENTICATED(HttpStatus.UNAUTHORIZED, 4001, "인증되지 않은 사용자"),
     NOT_AUTHORIZED(HttpStatus.FORBIDDEN, 4002, "자원에 대한 접근 권한 없음"),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, 4100, "해당 Id의 사용자 없음"),
