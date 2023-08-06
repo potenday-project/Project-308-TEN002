@@ -15,9 +15,11 @@ public enum ResponseCode {
     NOT_AUTHORIZED(HttpStatus.FORBIDDEN, 4002, "자원에 대한 접근 권한 없음"),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, 4100, "해당 Id의 사용자 없음"),
     UNAUTHORIZED_MEMBER_ACCESS(HttpStatus.FORBIDDEN, 4101, "해당 Id는 사용자 정보에 대한 접근 권한 없음"),
-    LOGIN_FAIL(HttpStatus.NOT_FOUND, 4103, "기존 가입 정보가 없습니다"),
-    SIGN_UP_FAIL(HttpStatus.BAD_REQUEST, 4104, "회원 가입에 실패했습니다"),
-    MATCH_COUNT_EXHAUSTED(HttpStatus.BAD_REQUEST, 4201, "매칭 횟수를 모두 소모했습니다");
+    LOGIN_FAIL(HttpStatus.NOT_FOUND, 4102, "기존 가입 정보가 없습니다"),
+    SIGN_UP_FAIL(HttpStatus.BAD_REQUEST, 4103, "회원 가입에 실패했습니다"),
+    BAD_LOGIN_ACCESS(HttpStatus.BAD_REQUEST, 4104, "비정상 로그인 시도입니다"),
+    MATCH_COUNT_EXHAUSTED(HttpStatus.BAD_REQUEST, 4201, "매칭 횟수를 모두 소모했습니다"),
+    UNKNOWN_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 5000, "알 수 없는 서버 에러");
 
     private HttpStatus httpStatus;
     private Integer code;
