@@ -18,6 +18,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +41,10 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -71,6 +76,7 @@ public class CustomLoginFilter extends OncePerRequestFilter {
         MemberLoginRequest memberLoginRequest = objectMapper.readValue(body, MemberLoginRequest.class);
         log.info("login request {}", memberLoginRequest);
         try {
+            requestValidationCheck(memberLoginRequest);
             MemberDto memberDto = memberService.getByUserProviderId(memberLoginRequest.user().providerUserId);
             UserPrincipal userPrincipal = UserPrincipal.of(memberDto.id(), memberDto.userProviderId(), memberDto.username(), memberDto.password());
             Authentication authentication = new CustomAuthenticationToken(userPrincipal, userPrincipal.getAuthorities());
@@ -81,13 +87,29 @@ public class CustomLoginFilter extends OncePerRequestFilter {
             MemberDto memberDto = new MemberDto(null, memberLoginRequest.user.providerUserId, memberLoginRequest.user.nickname, null, null, RegistrationSource.KAKAO, null, memberLoginRequest.user.imgUrl, null, null);
             session.setAttribute("tempMemberDto", memberDto);
             unsuccessfulAuthentication(request, response);
+        } catch (IllegalArgumentException e) {
+            illegalAuthenticationRequest(request, response);
         }
 
+    }
+
+    private void requestValidationCheck(MemberLoginRequest memberLoginRequest) {
+        if(memberLoginRequest == null ||
+                memberLoginRequest.user == null ||
+                !StringUtils.hasText(memberLoginRequest.user.providerUserId)){
+            throw new IllegalArgumentException();
+        }
     }
 
 
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
+
+        HttpSession session = request.getSession();
+        if(session.getAttribute("tempMemberDto") != null){
+            session.removeAttribute("tempMemberDto");
+        }
+
         SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authResult);
 
@@ -118,6 +140,17 @@ public class CustomLoginFilter extends OncePerRequestFilter {
         response.getWriter().println(body);
     }
 
+    protected void illegalAuthenticationRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        this.securityContextHolderStrategy.clearContext();
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
+
+        Response errorResponse = Response.failResponse(ResponseCode.BAD_LOGIN_ACCESS.getCode(), ResponseCode.BAD_LOGIN_ACCESS.getDesc());
+        String body = objectMapper.writeValueAsString(errorResponse);
+        response.getWriter().println(body);
+    }
+
 
 
     private static record MemberLoginRequest(User user,
@@ -128,6 +161,7 @@ public class CustomLoginFilter extends OncePerRequestFilter {
 
     public static record User(
             @JsonProperty(value = "id")
+            @NotBlank
             String providerUserId,
             @JsonProperty(value = "name")
             String nickname,
