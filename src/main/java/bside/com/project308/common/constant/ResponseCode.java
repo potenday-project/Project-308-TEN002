@@ -22,6 +22,7 @@ public enum ResponseCode {
     SIGN_UP_FAIL(HttpStatus.OK, 4103, "회원 가입에 실패했습니다"),
     BAD_LOGIN_ACCESS(HttpStatus.OK, 4104, "비정상 로그인 시도입니다"),
     MATCH_COUNT_EXHAUSTED(HttpStatus.OK, 4201, "매칭 횟수를 모두 소모했습니다"),
+    NO_MORE_PARTNER(HttpStatus.OK, 4203, "매칭 대상자가 더이상 없습니다."),
     UNKNOWN_SERVER_ERROR(HttpStatus.OK, 5000, "알 수 없는 서버 에러");
 
     private HttpStatus httpStatus;

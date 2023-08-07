@@ -1,5 +1,6 @@
 package bside.com.project308.match.entity;
 
+import bside.com.project308.common.entity.BaseTimeEntity;
 import bside.com.project308.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -14,7 +15,7 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @OnDelete(action = OnDeleteAction.CASCADE)
-public class Visit {
+public class Visit extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "visit_id")

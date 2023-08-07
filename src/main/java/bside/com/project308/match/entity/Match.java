@@ -34,6 +34,12 @@ public class Match extends BaseTimeEntity {
     @JoinColumn(name = "to_member_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Member toMember;
+
+    //todo : 고민 필요
+    @OneToOne(optional = true)
+    @JoinColumn(name = "connected_match_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Match connectedMatch;
     private LocalDateTime matchTime;
     private Boolean checked;
 
@@ -56,8 +62,13 @@ public class Match extends BaseTimeEntity {
         }
     }
 
-    public void matched() {
-
+    public void connectMatch(Match connectedMatch) {
+        if (this.connectedMatch == null) {
+            this.connectedMatch = connectedMatch;
+        }
+        if (connectedMatch.connectedMatch == null) {
+            connectedMatch.connectedMatch = this;
+        }
     }
 
     public Boolean isChecked() {
