@@ -1,6 +1,7 @@
 package bside.com.project308.member.service;
 
 import bside.com.project308.common.constant.ResponseCode;
+import bside.com.project308.common.exception.DuplicatedMemberException;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.common.exception.UnAuthorizedAccessException;
 import bside.com.project308.match.repository.CountRepository;
@@ -22,6 +23,7 @@ import bside.com.project308.member.repository.SkillMemberRepository;
 import bside.com.project308.member.repository.SkillRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -46,6 +48,13 @@ public class MemberService {
         return MemberDto.from(member);
     }
 
+    @Transactional
+    public MemberDto getByUserProviderIdForLogin(String userProviderId) {
+        Member member = memberRepository.findByUserProviderId(userProviderId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        member.updateLastLoginTime();
+        return MemberDto.from(member);
+    }
+
 
     @Transactional(readOnly = true)
     public MemberDto getMemberInfo(Long memberId) {
@@ -57,14 +66,18 @@ public class MemberService {
         return MemberDto.from(member, interestDtos, skillDtos);
     }
 
-    public MemberDto singUp(SignUpRequest signUpRequest, MemberDto memberDto) {
-        Member member = Member.builder().userProviderId(memberDto.userProviderId())
-                                        .username(memberDto.username())
-                                        .registrationSource(memberDto.registrationSource())
+    public MemberDto singUp(SignUpRequest signUpRequest) {
+        memberRepository.findByUserProviderId(signUpRequest.userProviderId()).ifPresent(userProviderId -> {
+            throw new DuplicatedMemberException(HttpStatus.BAD_REQUEST, ResponseCode.SIGN_UP_FAIL);
+        });
+
+        Member member = Member.builder().userProviderId(signUpRequest.userProviderId())
+                                        .username(signUpRequest.username())
+                                        .registrationSource(signUpRequest.registrationSource())
                                         .password(UUID.randomUUID().toString())
                                         .position(signUpRequest.position())
                                         .intro(signUpRequest.intro())
-                                        .imgUrl(memberDto.imgUrl())
+                                        .imgUrl(signUpRequest.imgUrl())
                                         .build();
         memberRepository.save(member);
 
