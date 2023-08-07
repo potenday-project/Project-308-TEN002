@@ -7,19 +7,19 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Response <T>{
+public class Response <T, U>{
     private Integer code;
-    private String message;
+    private U message;
     private T data;
 
     public static <T> Response success(Integer code, T data) {
         return new Response(code, null, data);
     }
 
-    public static <T> Response success(Integer code) {
+    public static Response success(Integer code) {
         return new Response(code, null, null);
     }
-    public static Response failResponse(Integer code, String message) {
+    public static <U> Response failResponse(Integer code, U message) {
         return new Response(code, message, null);
     }
 }

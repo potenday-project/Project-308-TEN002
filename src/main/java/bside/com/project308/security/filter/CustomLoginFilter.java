@@ -41,6 +41,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
@@ -48,6 +49,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Component
@@ -73,9 +75,11 @@ public class CustomLoginFilter extends OncePerRequestFilter {
         }
         String body = StreamUtils.copyToString(request.getInputStream(), StandardCharset.UTF_8);
         log.info("login request {}", body);
-        MemberLoginRequest memberLoginRequest = objectMapper.readValue(body, MemberLoginRequest.class);
-        log.info("login request {}", memberLoginRequest);
+        MemberLoginRequest memberLoginRequest =null;
+
         try {
+            memberLoginRequest = objectMapper.readValue(body, MemberLoginRequest.class);
+            log.info("login request {}", memberLoginRequest);
             requestValidationCheck(memberLoginRequest);
             MemberDto memberDto = memberService.getByUserProviderId(memberLoginRequest.user().providerUserId);
             UserPrincipal userPrincipal = UserPrincipal.of(memberDto.id(), memberDto.userProviderId(), memberDto.username(), memberDto.password());
@@ -88,6 +92,8 @@ public class CustomLoginFilter extends OncePerRequestFilter {
             session.setAttribute("tempMemberDto", memberDto);
             unsuccessfulAuthentication(request, response);
         } catch (IllegalArgumentException e) {
+            illegalAuthenticationRequest(request, response);
+        } catch (Exception e) {
             illegalAuthenticationRequest(request, response);
         }
 
@@ -109,6 +115,7 @@ public class CustomLoginFilter extends OncePerRequestFilter {
         if(session.getAttribute("tempMemberDto") != null){
             session.removeAttribute("tempMemberDto");
         }
+        log.info("[{}]{} logged in at {}", ((UserPrincipal) authResult.getPrincipal()).id(), ((UserPrincipal) authResult.getPrincipal()).getUsername(), LocalDateTime.now());
 
         SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authResult);
@@ -133,7 +140,7 @@ public class CustomLoginFilter extends OncePerRequestFilter {
         this.securityContextHolderStrategy.clearContext();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        response.setStatus(HttpStatus.NOT_FOUND.value());
+        response.setStatus(HttpStatus.OK.value());
 
         Response errorResponse = Response.failResponse(ResponseCode.LOGIN_FAIL.getCode(), ResponseCode.LOGIN_FAIL.getDesc());
         String body = objectMapper.writeValueAsString(errorResponse);
@@ -144,7 +151,7 @@ public class CustomLoginFilter extends OncePerRequestFilter {
         this.securityContextHolderStrategy.clearContext();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.setStatus(HttpStatus.OK.value());
 
         Response errorResponse = Response.failResponse(ResponseCode.BAD_LOGIN_ACCESS.getCode(), ResponseCode.BAD_LOGIN_ACCESS.getDesc());
         String body = objectMapper.writeValueAsString(errorResponse);

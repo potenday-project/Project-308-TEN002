@@ -16,7 +16,10 @@ public class HomeController {
     public String home() {
         return "home";
     }
-
+    @GetMapping("/ex")
+    public String ex() throws Exception {
+        throw new Exception("ss");
+    }
     @GetMapping("/info")
     @ResponseBody
     public String info(Authentication authentication, @AuthenticationPrincipal UserPrincipal userPrincipal) {

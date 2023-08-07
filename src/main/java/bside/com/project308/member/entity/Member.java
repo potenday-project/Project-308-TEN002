@@ -1,5 +1,6 @@
 package bside.com.project308.member.entity;
 
+import bside.com.project308.common.entity.BaseEntity;
 import bside.com.project308.common.entity.BaseTimeEntity;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.constant.RegistrationSource;
@@ -12,12 +13,13 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class Member extends BaseTimeEntity {
+public class Member extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id", updatable = false)
@@ -32,6 +34,7 @@ public class Member extends BaseTimeEntity {
     @Lob
     private String intro;
     private String imgUrl;
+    private LocalDateTime lastLogin;
 
     @Builder
     public Member(String userProviderId, String username, String password, Position position, RegistrationSource registrationSource, String intro, String imgUrl) {
@@ -49,6 +52,10 @@ public class Member extends BaseTimeEntity {
         this.position = position == null ? this.position : position;
         this.intro = intro == null ? this.intro : intro;
         this.imgUrl = imgUrl == null ? this.imgUrl : imgUrl;
+    }
+
+    public void updateLastLoginTime() {
+        this.lastLogin = LocalDateTime.now();
     }
 
     @Override

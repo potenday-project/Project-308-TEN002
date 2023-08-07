@@ -3,6 +3,7 @@ package bside.com.project308.security.config;
 import bside.com.project308.security.filter.CustomLoginFilter;
 import bside.com.project308.security.security.CustomAccessDeniedHandler;
 import bside.com.project308.security.security.CustomAuthenticationEntrypoint;
+import bside.com.project308.security.security.CustomLogoutSuccessHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -40,12 +42,13 @@ public class SecurityConfig {
 
         httpSecurity.csrf(csrfConfigurer -> csrfConfigurer.disable());
         httpSecurity.cors(Customizer.withDefaults());
-
+        httpSecurity.sessionManagement(sessionConfigurer -> sessionConfigurer.maximumSessions(1)
+                                                                             .maxSessionsPreventsLogin(false));
         httpSecurity.authorizeHttpRequests(authConfigurer -> authConfigurer
                                     .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll()
-                                    .requestMatchers(new AntPathRequestMatcher("/member/skill")).permitAll()
+                                    .requestMatchers(new AntPathRequestMatcher("/member/skill"), new AntPathRequestMatcher("/member/default-img")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/member/sign-up"), new AntPathRequestMatcher("/member/skill", "GET")).permitAll()
-                                    .requestMatchers(new AntPathRequestMatcher("/")).permitAll()
+                                    .requestMatchers(new AntPathRequestMatcher("/"), new AntPathRequestMatcher("/ex")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/login/oauth2/code/**")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/login/oauth2/code/**")).permitAll()
@@ -55,7 +58,8 @@ public class SecurityConfig {
                 .headers(headerConfigurer -> headerConfigurer.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()))
                     .exceptionHandling(exConfigurer -> exConfigurer
                                    .authenticationEntryPoint(customAuthenticationEntrypoint())
-                                    .accessDeniedHandler(customAccessDeniedHandler()));
+                                    .accessDeniedHandler(customAccessDeniedHandler()))
+                .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler()));
 
 /*        httpSecurity
                     .oauth2Login(oAuthConfigurer -> oAuthConfigurer
@@ -90,5 +94,10 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
+    }
+
+    @Bean
+    public LogoutSuccessHandler customLogoutSuccessHandler() {
+        return new CustomLogoutSuccessHandler(objectMapper);
     }
 }
