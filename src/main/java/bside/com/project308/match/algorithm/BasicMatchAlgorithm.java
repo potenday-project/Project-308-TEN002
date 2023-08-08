@@ -37,7 +37,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
     private final VisitedMemberCursorRepository visitedMemberCursorRepository;
     private final MatchRepository matchRepository;
     private final MemberService memberService;
-    
+
     @Override
     //todo : member update기능 개발 시 cacheput도 설정해줘야 함
     @Cacheable(value = "matchPartner", key = "#memberId")
