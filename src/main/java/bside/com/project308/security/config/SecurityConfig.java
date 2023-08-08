@@ -1,5 +1,7 @@
 package bside.com.project308.security.config;
 
+import bside.com.project308.security.filter.CustomJwtAuthorizationFilter;
+import bside.com.project308.security.filter.CustomJwtLoginFilter;
 import bside.com.project308.security.filter.CustomLoginFilter;
 import bside.com.project308.security.security.CustomAccessDeniedHandler;
 import bside.com.project308.security.security.CustomAuthenticationEntrypoint;
@@ -30,13 +32,15 @@ import java.util.Arrays;
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final OAuth2UserService oAuth2UserService;
     private final ObjectMapper objectMapper;
     private final CustomLoginFilter customLoginFilter;
+    private final CustomJwtAuthorizationFilter jwtAuthorizationFilter;
+    private final CustomJwtLoginFilter customJwtLoginFilter;
     @Bean
     public SecurityFilterChain webFilterChain(HttpSecurity httpSecurity, HandlerMappingIntrospector introspector) throws Exception {
 
@@ -54,7 +58,9 @@ public class SecurityConfig {
                                     .requestMatchers(new AntPathRequestMatcher("/login/oauth2/code/**")).permitAll()
                                     .anyRequest().authenticated()
                             )
-                .addFilterAfter(customLoginFilter, LogoutFilter.class)
+                .addFilterAfter(customJwtLoginFilter, LogoutFilter.class)
+                .addFilterBefore(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
+                .addFilterAfter(customLoginFilter, CustomJwtLoginFilter.class)
                 .headers(headerConfigurer -> headerConfigurer.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()))
                     .exceptionHandling(exConfigurer -> exConfigurer
                                    .authenticationEntryPoint(customAuthenticationEntrypoint())
@@ -88,9 +94,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(Arrays.asList("*"));
+        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
         corsConfiguration.setAllowedMethods(Arrays.asList("*"));
         corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
+        corsConfiguration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
