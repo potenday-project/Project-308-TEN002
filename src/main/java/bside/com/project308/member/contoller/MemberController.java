@@ -2,19 +2,16 @@ package bside.com.project308.member.contoller;
 
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.InvalidAccessException;
-import bside.com.project308.common.exception.UnAuthorizedAccessException;
 import bside.com.project308.common.response.Response;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.dto.MemberDto;
+import bside.com.project308.member.dto.request.MemberUpdateRequest;
 import bside.com.project308.member.dto.request.SignUpRequest;
 import bside.com.project308.member.dto.response.ImgResponse;
-import bside.com.project308.member.repository.SkillRepository;
-import bside.com.project308.member.service.SkillService;
-import bside.com.project308.security.security.UserPrincipal;
-import bside.com.project308.member.dto.request.MemberUpdateRequest;
 import bside.com.project308.member.dto.response.MemberResponse;
 import bside.com.project308.member.service.MemberService;
-import jakarta.servlet.http.HttpSession;
+import bside.com.project308.member.service.SkillService;
+import bside.com.project308.security.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +21,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,6 +40,7 @@ public class MemberController {
     @GetMapping
     public ResponseEntity<Response> getMemberInfo(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         MemberDto memberInfo = memberService.getMemberInfo(userPrincipal.id());
+
         return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), MemberResponse.from(memberInfo)));
     }
 
@@ -64,8 +61,6 @@ public class MemberController {
 
     @PostMapping("/sign-up")
     public ResponseEntity<Response> signUp(@Validated @RequestBody SignUpRequest signUpRequest) {
-
-
         if (SecurityContextHolder.getContext().getAuthentication() != null && !(SecurityContextHolder.getContext().getAuthentication() instanceof AnonymousAuthenticationToken)) {
             throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.SIGN_UP_FAIL, "이미 회원가입된 사용자입니다");
         }
