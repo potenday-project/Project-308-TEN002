@@ -11,6 +11,7 @@ import bside.com.project308.match.repository.VisitedMemberCursorRepository;
 import bside.com.project308.member.entity.Member;
 import bside.com.project308.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +24,11 @@ public class VisitService {
 
     private final VisitRepository visitRepository;
     private final MemberRepository memberRepository;
-    private final MatchRepository matchRepository;
+    private final MatchService matchService;
     private final VisitedMemberCursorRepository visitedMemberCursorRepository;
 
+
+    @CacheEvict(value = "matchPartner", key = "#fromMemberId")
     public Boolean postLike(Long fromMemberId, Long toMemberId, boolean like){
         boolean flag = false;
 
@@ -49,11 +52,7 @@ public class VisitService {
             //visittable은 삭제
             Optional<Visit> isVisited = visitRepository.findByFromMemberAndToMember(toMember, fromMember);
             if (isVisited.isPresent() && isVisited.get().getMatchResult()) {
-
-                Match newMatch1 = Match.of(fromMember, toMember);
-                Match newMatch2 = Match.of(toMember, fromMember);
-                matchRepository.save(newMatch1);
-                matchRepository.save(newMatch2);
+                matchService.match(fromMember, toMember);
 
                 //todo: 양방향을 묶을 수 있는 로직이 필요
                 visitRepository.delete(isVisited.get());

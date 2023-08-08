@@ -1,7 +1,6 @@
 package bside.com.project308.match.entity;
 
 import bside.com.project308.common.entity.BaseTimeEntity;
-import bside.com.project308.match.MaxMatchCount;
 import bside.com.project308.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -22,18 +21,19 @@ public class Count extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "count_id")
     private Long id;
-
     @OneToOne
     @JoinColumn(name = "member_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
-    private Integer count;
+    private Integer maxCount;
+    private Integer curCount;
     private LocalDateTime maxExhaustionTime;
     private Boolean exhausted;
 
-    private Count(Member member, Integer count, Boolean exhausted) {
+    private Count(Member member, Integer curCount, Boolean exhausted) {
+        this.maxCount = 5;
         this.member = member;
-        this.count = count;
+        this.curCount = curCount;
         this.exhausted = exhausted;
     }
     public static Count of(Member member) {
@@ -46,11 +46,11 @@ public class Count extends BaseTimeEntity {
 
     public Integer useMatch() {
         Assert.state(!this.exhausted, "모든 매치 횟수를 소진하였습니다.");
-        this.count ++;
-        if (count == MaxMatchCount.getMatchCount()) {
+        this.curCount++;
+        if (curCount == this.maxCount) {
             this.exhausted = true;
         }
-        return this.count;
+        return this.curCount;
     }
 
     @Override

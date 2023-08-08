@@ -1,6 +1,7 @@
 package bside.com.project308.member.entity;
 
 import bside.com.project308.common.entity.BaseEntity;
+import bside.com.project308.common.entity.BaseTimeEntity;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.constant.SkillCategory;
 import jakarta.persistence.*;
@@ -14,7 +15,7 @@ import java.util.Objects;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class Skill extends BaseEntity {
+public class Skill extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "skill_id")
     private Long id;
