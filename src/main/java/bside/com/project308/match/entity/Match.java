@@ -29,6 +29,7 @@ public class Match extends BaseTimeEntity {
     private Long id;
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "from_member_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member fromMember;
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "to_member_id")

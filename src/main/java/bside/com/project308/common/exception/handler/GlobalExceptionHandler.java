@@ -43,6 +43,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({InvalidAccessException.class, UnAuthorizedAccessException.class, ResourceNotFoundException.class, DuplicatedMemberException.class})
     public ResponseEntity<Response> InvalidExceptionHandler(BaseException e) {
         log.error("BaseException", e);
+        log.error(e.getResponseCode().getDesc());
 
         Response response = Response.failResponse(e.getResponseCode().getCode(), e.getMessage());
         return ResponseEntity.status(HttpStatus.OK).body(response);
