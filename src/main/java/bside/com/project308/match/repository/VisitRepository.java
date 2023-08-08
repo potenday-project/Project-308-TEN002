@@ -13,5 +13,5 @@ public interface VisitRepository extends JpaRepository<Visit, Long> {
     Set<Visit> findByFromMember(Member member);
 
     Optional<Visit> findByFromMemberAndToMember(Member FromMember, Member toMember);
-
+    void deleteByFromMember(Member fromMember);
 }
