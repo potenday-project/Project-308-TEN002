@@ -16,6 +16,8 @@ import bside.com.project308.member.repository.InterestRepository;
 import bside.com.project308.member.repository.MemberRepository;
 import bside.com.project308.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Transactional
+@Slf4j
 public class BasicMatchAlgorithm implements MatchAlgorithm {
     private final MemberRepository memberRepository;
     private final InterestRepository interestRepository;
@@ -34,7 +37,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
     private final VisitedMemberCursorRepository visitedMemberCursorRepository;
     private final MatchRepository matchRepository;
     private final MemberService memberService;
-
+    
     @Override
     //todo : member update기능 개발 시 cacheput도 설정해줘야 함
     @Cacheable(value = "matchPartner", key = "#memberId")
@@ -52,7 +55,6 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
         Set<Member> visitedMembers = visitRepository.findByFromMember(member).stream().map(Visit::getToMember).collect(Collectors.toSet());
         Set<Member> matchedMembers = matchRepository.findByFromMember(member)
                                                     .stream()
-                                                    .parallel()
                                                     .map(Match::getToMember)
                                                     .collect(Collectors.toSet());
 
@@ -66,10 +68,11 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
 
 
         //visitedMember와 matchedMember를 union하여 매칭 후보군에서 빼는 작업
-        visitedMemberDtos.retainAll(matchedMemberDtos);
+        visitedMemberDtos.addAll(matchedMemberDtos);
 
         if (visitedMemberDtos.containsAll(allInterestingMemberDto)) {
-            memberRepository.deleteAllInBatch(visitedMembers);
+            log.info("모든 사용자를 방문하여 매치를 초기화합니다.");
+            visitRepository.deleteByFromMember(member);
             matchedMemberDtos = new HashSet<>();
         }
 

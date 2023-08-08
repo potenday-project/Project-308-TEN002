@@ -27,6 +27,7 @@ public class VisitService {
     private final MatchService matchService;
     private final VisitedMemberCursorRepository visitedMemberCursorRepository;
 
+
     @CacheEvict(value = "matchPartner", key = "#fromMemberId")
     public Boolean postLike(Long fromMemberId, Long toMemberId, boolean like){
         boolean flag = false;
