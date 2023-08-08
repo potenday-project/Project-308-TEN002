@@ -19,7 +19,6 @@ public class Skill extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "skill_id")
     private Long id;
-    @Column(unique = true)
     private String skillName;
     @Enumerated(EnumType.STRING)
     private Position position;
