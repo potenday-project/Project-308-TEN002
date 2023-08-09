@@ -10,10 +10,15 @@ import java.time.LocalDateTime;
 public record MessageRoomDto(Long id,
                              MemberDto fromMember,
                              MemberDto toMember,
-                             LocalDateTime createdTime
+                             LocalDateTime createdTime,
+                             MessageDto lastMessage
 ) {
 
     public static MessageRoomDto from(MessageRoom messageRoom) {
-        return new MessageRoomDto(messageRoom.getId(), MemberDto.from(messageRoom.getFromMember()), MemberDto.from(messageRoom.getToMember()), messageRoom.getCreatedTime());
+        return new MessageRoomDto(messageRoom.getId(),
+                                    MemberDto.from(messageRoom.getFromMember()),
+                                    MemberDto.from(messageRoom.getToMember()),
+                                    messageRoom.getCreatedTime(),
+                                    MessageDto.from(messageRoom.getLastMessage()));
     }
 }

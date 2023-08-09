@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -28,12 +29,14 @@ public class Message extends BaseEntity {
     private MessageRoom messageRoom;
     private boolean isFromMemberMessage;
     private boolean isRead;
+    private LocalDateTime messageCreatedTime;
 
     private Message(String content, MessageRoom messageRoom, boolean isFromMemberMessage, boolean isRead) {
         this.content = content;
         this.messageRoom = messageRoom;
         this.isFromMemberMessage = isFromMemberMessage;
         this.isRead = isRead;
+        this.messageCreatedTime = LocalDateTime.now();
     }
 
     //생성 즉시 상대방이 message는 읽을 수 없으므로 iseRead는 false
@@ -45,7 +48,9 @@ public class Message extends BaseEntity {
         this.isRead = true;
     }
 
-
+    public static Message getDefaultMessage(MessageRoom messageRoom, boolean isFromMemberMessage) {
+        return new Message("새로운 매칭이 시작되었습니다.", messageRoom, isFromMemberMessage, false);
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
