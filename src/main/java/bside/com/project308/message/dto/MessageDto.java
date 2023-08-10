@@ -21,4 +21,8 @@ public record MessageDto (
                 : message.getMessageRoom().getToMember().getId();
         return new MessageDto(message.getId(), message.getContent(), message.getMessageRoom().getId(), messageWriterId, message.isRead(), message.getMessageCreatedTime());
     }
+
+    public static MessageDto defaultMessage(Long messageRoomId, Long messageWriterId) {
+        return new MessageDto(null, "새로운 매치입니다.", messageRoomId, messageWriterId, false, LocalDateTime.now());
+    }
 }

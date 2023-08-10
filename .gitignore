@@ -144,4 +144,7 @@ gradle-app.setting
 *.yml
 *.idea/
 *.pk
+*.txt
+*.png
+*.p12
 # End of https://www.toptal.com/developers/gitignore/api/gradle,intellij+iml,windows
