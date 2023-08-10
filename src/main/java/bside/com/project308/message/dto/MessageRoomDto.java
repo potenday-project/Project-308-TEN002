@@ -12,13 +12,22 @@ public record MessageRoomDto(Long id,
                              MemberDto toMember,
                              LocalDateTime createdTime,
                              MessageDto lastMessage
+
+
 ) {
 
     public static MessageRoomDto from(MessageRoom messageRoom) {
+        MessageDto messageDto = null;
+        //todo : lastMessage null에 대한 해결 필요
+        if (messageRoom.getLastMessage() == null) {
+            messageDto = MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getToMember().getId());
+        }else{
+            messageDto = MessageDto.from(messageRoom.getLastMessage());
+        }
         return new MessageRoomDto(messageRoom.getId(),
                                     MemberDto.from(messageRoom.getFromMember()),
                                     MemberDto.from(messageRoom.getToMember()),
                                     messageRoom.getCreatedTime(),
-                                    MessageDto.from(messageRoom.getLastMessage()));
+                                    messageDto);
     }
 }

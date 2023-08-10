@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Transactional
 @RequiredArgsConstructor
 @Service
@@ -21,7 +23,8 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final MessageRoomRepository messageRoomRepository;
 
-    public MessageDto writeMessage(Long messageRoomId, Long memberId, String content) {
+    //todo:어차피 영속성컨텍스트로 묶이니 안전하게 dto로 반환해서 MessageRoomService에서의 find호출은 추가 쿼리를 안 날리 -> 안전하게 dto로 반환할지 고민
+    public Message writeMessage(Long messageRoomId, Long memberId, String content) {
         MessageRoom messageRoom = messageRoomRepository.findById(messageRoomId).orElseThrow(() ->
                 new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM)
         );
@@ -34,10 +37,21 @@ public class MessageService {
             throw new UnAuthorizedAccessException(ResponseCode.NOT_AUTHORIZED_ACCESS_TO_MESSAGING);
         }
         messageRepository.save(newMessage);
-        return MessageDto.from(newMessage);
+        return newMessage;
     }
 
-    public void readMessage(Long chatRoomId, Long fromMemberId, Pageable pageable) {
+    public List<Message> readMessage(Long messageRoomId, Long memberId, Pageable pageable) {
+        MessageRoom messageRoom = messageRoomRepository.findById(messageRoomId).orElseThrow(() ->
+                new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM)
+        );
+        List<Message> messages = messageRepository.findByMessageRoom(messageRoom);
+        //메시지 읽기 처리 todo: 리팩토링 필요
+        if (messageRoom.getFromMember().getId() == memberId) {
+            messages.stream().filter(message -> !message.isFromMemberMessage()).forEach(Message::readMessage);
+        }else{
+            messages.stream().filter(Message::isFromMemberMessage).forEach(Message::readMessage);
+        }
 
+        return messages;
     }
 }
