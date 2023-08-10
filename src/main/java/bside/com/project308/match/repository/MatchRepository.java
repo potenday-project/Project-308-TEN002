@@ -13,6 +13,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     Set<Match> findByFromMemberOrToMember(Member member1, Member member2);
     Set<Match> findByFromMember(Member fromMember);
     Optional<Match> findByFromMemberAndToMember(Member fromMember, Member toMember);
+    Optional<Match> findByFromMemberAndId(Member fromMember, Long matchId);
 
     List<Match> findByFromMemberOrderByMatchTimeDesc(Member fromMember);
     @EntityGraph(attributePaths = {"fromMember", "toMember"})

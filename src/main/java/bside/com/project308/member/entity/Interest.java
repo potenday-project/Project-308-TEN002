@@ -9,7 +9,6 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@OnDelete(action = OnDeleteAction.CASCADE)
 @Getter
 @Entity
 public class Interest extends BaseEntity {

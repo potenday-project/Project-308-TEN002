@@ -48,6 +48,21 @@ public class MatchFeedController {
 
     }
 
+    @GetMapping("/today-list")
+    public ResponseEntity<Response> getMatchTodayPartner(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        /*
+        1. userPrincipal로 검색하면 match상대방이 한 명 나옴
+        * */
+
+        List<MemberDto> matchPartners = matchService.getTodayMatchPartner(userPrincipal.id());
+        List<MemberResponse> matchPartnerResponses = matchPartners.stream().map(MemberResponse::from).toList();
+        if (matchPartnerResponses.size() > 5) {
+            matchPartnerResponses = matchPartnerResponses.subList(0, 5);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), matchPartnerResponses));
+
+    }
+
     @PostMapping("/like")
     public ResponseEntity<Response> postLike(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody MatchRequest matchRequest) {
 
@@ -99,5 +114,6 @@ public class MatchFeedController {
     public ResponseEntity<Response> checkMatch(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                @PathVariable Long matchId) {
         matchService.checkMatch(userPrincipal.id(), matchId);
+        return ResponseEntity.ok(Response.success(ResponseCode.SUCCESS.getCode()));
     }
 }
