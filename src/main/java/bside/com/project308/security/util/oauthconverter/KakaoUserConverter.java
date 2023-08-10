@@ -30,6 +30,6 @@ public class KakaoUserConverter implements OauthConverter{
         Map<String, Object> profile = (Map) kakaoProps.get("profile");
         String username = String.valueOf(profile.get("nickname"));
 
-        return UserPrincipal.of(null, id, username, UUID.randomUUID().toString(), kakaoAttributes);
+        return UserPrincipal.of(null, id, username, UUID.randomUUID().toString(), null, kakaoAttributes);
     }
 }
