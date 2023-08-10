@@ -17,6 +17,9 @@ import bside.com.project308.member.repository.InterestRepository;
 import bside.com.project308.member.repository.MemberRepository;
 import bside.com.project308.member.repository.SkillMemberRepository;
 import bside.com.project308.member.repository.SkillRepository;
+import bside.com.project308.message.dto.MessageRoomWithNewMessageCheck;
+import bside.com.project308.message.dto.request.MessageRequest;
+import bside.com.project308.message.service.MessageRoomService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +49,7 @@ public class SetUp {
     private final PlatformTransactionManager txManager;
     private final MatchService matchService;
     private final VisitService visitService;
+    private final MessageRoomService messageRoomService;
 
     @PostConstruct
     @Transactional
@@ -143,6 +148,35 @@ public class SetUp {
                 interestRepository.save(customIterest);
                 skillMemberRepository.saveAll(skillMemberTable);
                 visitService.postLike(members.get(0).getId(), customMember.getId(), true);
+                IntStream.rangeClosed(1, 40)
+                                 .forEach(i -> visitService.postLike(members.get(i).getId(), customMember.getId(), true));
+
+
+
+
+                matchService.match(customMember, members.get(3));
+                matchService.match(customMember, members.get(5));
+                matchService.match(customMember, members.get(12));
+
+
+                List<MessageRoomWithNewMessageCheck> allMessageRoomList = messageRoomService.getAllMessageRoomList(customMember.getId());
+                MessageRequest messageRequest1 = new MessageRequest(allMessageRoomList.get(0).id(), "지혜님 테스트 메시지입니다");
+                MessageRequest messageRequest2 = new MessageRequest(allMessageRoomList.get(1).id(), "지혜님 테스트 메시지입니다");
+                MessageRequest messageRequest3 = new MessageRequest(allMessageRoomList.get(2).id(), "지혜님 테스트 메시지입니다");
+                messageRoomService.writeMessage(customMember.getId(), messageRequest1);
+                messageRoomService.writeMessage(customMember.getId(), messageRequest2);
+                messageRoomService.writeMessage(customMember.getId(), messageRequest3);
+
+                List<MessageRoomWithNewMessageCheck> allMessageRoomList2 = messageRoomService.getAllMessageRoomList(members.get(12).getId());
+                MessageRoomWithNewMessageCheck messageRoomWithNewMessageCheck2 = allMessageRoomList2.get(1);
+
+                MessageRequest messageRequest4 = new MessageRequest(messageRoomWithNewMessageCheck2.id(), "상대방 테스트 메시지입니다");
+                messageRoomService.writeMessage(members.get(12).getId(), messageRequest4);
+                messageRoomService.writeMessage(members.get(12).getId(), messageRequest4);
+
+                messageRoomService.writeMessage(customMember.getId(), messageRequest1);
+                messageRoomService.writeMessage(customMember.getId(), messageRequest3);
+
             }
 
 

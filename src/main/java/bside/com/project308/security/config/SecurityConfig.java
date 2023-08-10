@@ -9,6 +9,8 @@ import bside.com.project308.security.security.CustomLogoutSuccessHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -36,20 +38,25 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final OAuth2UserService oAuth2UserService;
     private final ObjectMapper objectMapper;
     private final CustomLoginFilter customLoginFilter;
     private final CustomJwtAuthorizationFilter jwtAuthorizationFilter;
     private final CustomJwtLoginFilter customJwtLoginFilter;
     @Bean
-    public SecurityFilterChain webFilterChain(HttpSecurity httpSecurity, HandlerMappingIntrospector introspector) throws Exception {
+    public SecurityFilterChain localFilterChain(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity.csrf(csrfConfigurer -> csrfConfigurer.disable());
         httpSecurity.cors(Customizer.withDefaults());
         httpSecurity.sessionManagement(sessionConfigurer -> sessionConfigurer.maximumSessions(1)
-                                                                             .maxSessionsPreventsLogin(false));
+                                                                              .maxSessionsPreventsLogin(false));
+
+        httpSecurity.requiresChannel(channel -> channel.anyRequest().requiresSecure());
         httpSecurity.authorizeHttpRequests(authConfigurer -> authConfigurer
                                     .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll()
+                                    //.requestMatchers(new AntPathRequestMatcher("/.well-known/pki-validation/**")).permitAll()
+                                    //.requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll()
+                                    .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                                    .requestMatchers(new AntPathRequestMatcher("/avatar/**")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/member/skill"), new AntPathRequestMatcher("/member/default-img")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/member/sign-up"), new AntPathRequestMatcher("/member/skill", "GET")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/"), new AntPathRequestMatcher("/ex")).permitAll()
@@ -76,9 +83,58 @@ public class SecurityConfig {
                             .defaultSuccessUrl("/info")
                             );*/
         return httpSecurity.build();
-
     }
 
+    @Bean
+    @ConditionalOnProperty(prefix = "spring.config.activate", name = "on-profile", havingValue = "prod")
+    public SecurityFilterChain prodFilterChain(HttpSecurity httpSecurity) throws Exception {
+
+        httpSecurity.csrf(csrfConfigurer -> csrfConfigurer.disable());
+        httpSecurity.cors(Customizer.withDefaults());
+        httpSecurity.sessionManagement(sessionConfigurer -> sessionConfigurer.maximumSessions(1)
+                                                                             .maxSessionsPreventsLogin(false));
+        httpSecurity.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+
+
+        httpSecurity.authorizeHttpRequests(authConfigurer -> authConfigurer
+                            .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll()
+                            .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                            .requestMatchers(HttpMethod.GET, "/member/skill", "/member/default-img", "/avatar/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/member/sign-up").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/").permitAll()
+                            .anyRequest().authenticated()
+                    ).exceptionHandling(exConfigurer -> exConfigurer
+                            .authenticationEntryPoint(customAuthenticationEntrypoint())
+                            .accessDeniedHandler(customAccessDeniedHandler()));
+
+        httpSecurity
+                    .addFilterAfter(customJwtLoginFilter, LogoutFilter.class)
+                    .addFilterBefore(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
+                    .addFilterAfter(customLoginFilter, CustomJwtLoginFilter.class)
+                    .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler()));
+
+        return httpSecurity.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+
+        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://coworker-matching.vercel.app"));
+        corsConfiguration.setAllowedMethods(Arrays.asList("*"));
+        corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
+        corsConfiguration.setAllowCredentials(true);
+        //corsConfiguration.setAllowedHeaders(Arrays.asList("Cookie"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration);
+        return source;
+    }
+
+    @Bean
+    public LogoutSuccessHandler customLogoutSuccessHandler() {
+        return new CustomLogoutSuccessHandler(objectMapper);
+    }
 
 
     @Bean
@@ -91,21 +147,4 @@ public class SecurityConfig {
         return new CustomAccessDeniedHandler(objectMapper);
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        corsConfiguration.setAllowedMethods(Arrays.asList("*"));
-        corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
-        corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setAllowedHeaders(Arrays.asList("Cookie"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfiguration);
-        return source;
-    }
-
-    @Bean
-    public LogoutSuccessHandler customLogoutSuccessHandler() {
-        return new CustomLogoutSuccessHandler(objectMapper);
-    }
 }

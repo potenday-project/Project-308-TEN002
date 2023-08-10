@@ -22,7 +22,7 @@ public class TestController {
     private final VisitRepository visitRepository;
 
     @GetMapping("/reset")
-    public String reset(@PathVariable Long memberId) {
+    public String reset() {
         countRepository.deleteAll();
         matchRepository.deleteAll();
         visitRepository.deleteAll();
