@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/test")
-@ConditionalOnProperty(value = "spring.config.activate.on-profile", havingValue = "local")
+
 public class TestController {
     private final CountRepository countRepository;
     private final MatchRepository matchRepository;
@@ -26,7 +26,6 @@ public class TestController {
         countRepository.deleteAll();
         matchRepository.deleteAll();
         visitRepository.deleteAll();
-        visitedMemberCursorRepository.deleteAll();
         return "초기화 완료";
     }
 }

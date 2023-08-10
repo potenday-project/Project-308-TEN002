@@ -10,6 +10,7 @@ import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.entity.Member;
 import bside.com.project308.member.repository.MemberRepository;
+import bside.com.project308.message.service.MessageRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,12 +27,14 @@ public class MatchService {
     private final MatchAlgorithm matchAlgorithm;
     private final MatchRepository matchRepository;
     private final MemberRepository memberRepository;
+    //todo : 향후 event방식으로 변경해서 결합도를 낮춰야함
+    private final MessageRoomService messageRoomService;
     public MemberDto getMatchPartner(Long memberId) {
         return matchAlgorithm.getMatchPartner(memberId);
     }
 
 
-    public void match(Member fromMember, Member toMember) {
+    public MatchDto match(Member fromMember, Member toMember) {
          matchRepository.findByFromMemberAndToMember(fromMember, toMember).ifPresent(
                  member -> {
                      throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST);
@@ -45,8 +48,9 @@ public class MatchService {
         matchRepository.save(newMatch2);
         newMatch1.connectMatch(newMatch2);
 
+        messageRoomService.createMessageRoom(fromMember, toMember);
         //todo: 양방향을 묶을 수 있는 로직이 필요
-
+        return MatchDto.from(newMatch1);
     }
 
     public List<MatchDto> getUncheckedMatchList(Long memberId) {
@@ -67,4 +71,9 @@ public class MatchService {
         //todo: 양방향을 묶을 수 있는 로직이 필요
 
     }
+
+    public void checkMatch(Long id, Long matchId) {
+    }
+
+
 }

@@ -32,17 +32,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Response> UnknownServerError(Exception e, HttpServletRequest request) {
-        log.error("request url = {}, request Parameter = {}", request.getServletPath(), request.getRequestURL());
-        log.error("request ip = ", request.getRemoteHost());
-
-        log.error("Unknown server error", e);
+        log.error("[Application Error] request url = {}, request Parameter = {}", request.getServletPath(), request.getRequestURL());
+        log.error("[Application Error] request ip = ", request.getRemoteHost());
+        log.error("[Application Error] Unknown server error", e);
         Response response = Response.failResponse(ResponseCode.UNKNOWN_SERVER_ERROR.getCode(), ResponseCode.UNKNOWN_SERVER_ERROR.getDesc());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @ExceptionHandler({InvalidAccessException.class, UnAuthorizedAccessException.class, ResourceNotFoundException.class, DuplicatedMemberException.class})
     public ResponseEntity<Response> InvalidExceptionHandler(BaseException e) {
-        log.error("BaseException", e);
+        log.error("[Application Error] BaseException", e);
+        log.error(e.getResponseCode().getDesc());
 
         Response response = Response.failResponse(e.getResponseCode().getCode(), e.getMessage());
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -50,14 +50,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Response> httpMethodExHandler(HttpRequestMethodNotSupportedException e) {
-        log.error("Not Supported Method", e);
+        log.error("[Application Error] Not Supported Method", e);
 
         Response response = Response.failResponse(ResponseCode.BAD_REQUEST.getCode(), "지원하지 않는 메소드입니다.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Response> requestValidationEx(MethodArgumentNotValidException e) {
-        log.error("Argument Validation Exception", e);
+        log.error("[Application Error] Argument Validation Exception", e);
         Map<String, List<String>> messageDetail = convertBindingResultToMap(e.getBindingResult());
 
         Response response = Response.failResponse(ResponseCode.BAD_REQUEST.getCode(), messageDetail);
@@ -65,7 +65,7 @@ public class GlobalExceptionHandler {
     }
 
     private static Map<String, List<String>> convertBindingResultToMap(BindingResult bindingResult) {
-        log.info("error : {}", bindingResult.getFieldErrors());
+        log.info("[Application Error] error : {}", bindingResult.getFieldErrors());
         Map<String, List<String>> messageDetail = new HashMap<>();
 
 

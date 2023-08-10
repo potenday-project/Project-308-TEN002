@@ -72,19 +72,18 @@ public class CustomLoginFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (!DEFAULT_REQUEST_MATCHER.matches(request)) {
             filterChain.doFilter(request, response);
-            log.info("response Header {}", response.getHeader("Cookie"));
             return;
         }
         String body = StreamUtils.copyToString(request.getInputStream(), StandardCharset.UTF_8);
-        log.info("login request {}", body);
+        log.info("login request body to /login : {}", body);
         MemberLoginRequest memberLoginRequest =null;
 
         try {
             memberLoginRequest = objectMapper.readValue(body, MemberLoginRequest.class);
-            log.info("login request {}", memberLoginRequest);
+            log.info("login request object to /login : {}", memberLoginRequest);
             requestValidationCheck(memberLoginRequest);
             MemberDto memberDto = memberService.getByUserProviderId(memberLoginRequest.user().providerUserId);
-            UserPrincipal userPrincipal = UserPrincipal.of(memberDto.id(), memberDto.userProviderId(), memberDto.username(), memberDto.password());
+            UserPrincipal userPrincipal = UserPrincipal.of(memberDto.id(), memberDto.userProviderId(), memberDto.username(), memberDto.password(), null);
             Authentication authentication = new CustomAuthenticationToken(userPrincipal, userPrincipal.getAuthorities());
             successfulAuthentication(request, response, filterChain, authentication);
 
@@ -105,6 +104,7 @@ public class CustomLoginFilter extends OncePerRequestFilter {
         if(memberLoginRequest == null ||
                 memberLoginRequest.user == null ||
                 !StringUtils.hasText(memberLoginRequest.user.providerUserId)){
+            log.error("[Application Error] login validation check error");
             throw new IllegalArgumentException();
         }
     }
@@ -146,6 +146,8 @@ public class CustomLoginFilter extends OncePerRequestFilter {
     }
 
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        log.error("[Application Error] login request fail!");
+
         this.securityContextHolderStrategy.clearContext();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
@@ -157,6 +159,8 @@ public class CustomLoginFilter extends OncePerRequestFilter {
     }
 
     protected void illegalAuthenticationRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        log.error("login request fail!");
+
         this.securityContextHolderStrategy.clearContext();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");

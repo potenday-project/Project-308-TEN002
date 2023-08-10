@@ -4,6 +4,8 @@ import bside.com.project308.match.entity.Match;
 import bside.com.project308.match.entity.Visit;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.match.repository.VisitRepository;
+import bside.com.project308.match.service.MatchService;
+import bside.com.project308.match.service.VisitService;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.constant.RegistrationSource;
 import bside.com.project308.member.constant.SkillCategory;
@@ -41,6 +43,8 @@ public class SetUp {
     private final VisitRepository visitRepository;
     private final MatchRepository matchRepository;
     private final PlatformTransactionManager txManager;
+    private final MatchService matchService;
+    private final VisitService visitService;
 
     @PostConstruct
     @Transactional
@@ -93,12 +97,7 @@ public class SetUp {
                 //1번 멤버는 모든 사람과 매칭됨
                 List<Match> matches = new ArrayList<>();
                 for (int i = 1; i < members.size(); i++) {
-                    Match match1 = Match.of(members.get(0), members.get(i));
-                    Match match2 = Match.of(members.get(i), members.get(0));
-
-                    matchRepository.save(match1);
-                    matchRepository.save(match2);
-                    match1.connectMatch(match2);
+                    matchService.match(members.get(0), members.get(i));
                 }
 
                 List<Visit> visits1 = new ArrayList<>();
@@ -143,8 +142,10 @@ public class SetUp {
                 memberRepository.save(customMember);
                 interestRepository.save(customIterest);
                 skillMemberRepository.saveAll(skillMemberTable);
-
+                visitService.postLike(members.get(0).getId(), customMember.getId(), true);
             }
+
+
         });
 
 

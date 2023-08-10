@@ -55,20 +55,19 @@ public class CustomJwtLoginFilter extends OncePerRequestFilter {
 
         if (!DEFAULT_REQUEST_MATCHER.matches(request)) {
             filterChain.doFilter(request, response);
-            log.info("response Header {}", response.getHeader("Cookie"));
             return;
         }
 
         String body = StreamUtils.copyToString(request.getInputStream(), StandardCharset.UTF_8);
-        log.info("login request {}", body);
+        log.info("login request body to jwt : {}", body);
         MemberLoginRequest memberLoginRequest =null;
 
         try {
             memberLoginRequest = objectMapper.readValue(body, MemberLoginRequest.class);
-            log.info("login request {}", memberLoginRequest);
+            log.info("login request object to jwt : {}", memberLoginRequest);
             requestValidationCheck(memberLoginRequest);
             MemberDto memberDto = memberService.getByUserProviderId(memberLoginRequest.user().providerUserId);
-            UserPrincipal userPrincipal = UserPrincipal.of(memberDto.id(), memberDto.userProviderId(), memberDto.username(), memberDto.password());
+            UserPrincipal userPrincipal = UserPrincipal.of(memberDto.id(), memberDto.userProviderId(), memberDto.username(), memberDto.password(), null);
 
             String token = jwtTokenProvider.createToken(userPrincipal);
             successfulAuthentication(request, response, filterChain, token);
@@ -84,7 +83,9 @@ public class CustomJwtLoginFilter extends OncePerRequestFilter {
         if(memberLoginRequest == null ||
                 memberLoginRequest.user == null ||
                 !StringUtils.hasText(memberLoginRequest.user.providerUserId)){
+            log.error("[Application Error] login request validation check error");
             throw new IllegalArgumentException();
+
         }
     }
 
@@ -105,6 +106,7 @@ public class CustomJwtLoginFilter extends OncePerRequestFilter {
     }
 
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        log.error("[Application Error] login request fail!");
         this.securityContextHolderStrategy.clearContext();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
@@ -116,6 +118,7 @@ public class CustomJwtLoginFilter extends OncePerRequestFilter {
     }
 
     protected void illegalAuthenticationRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        log.error("[Application Error] login request fail!");
         this.securityContextHolderStrategy.clearContext();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
