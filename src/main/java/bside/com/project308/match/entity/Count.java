@@ -16,7 +16,6 @@ import java.util.Objects;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@OnDelete(action = OnDeleteAction.CASCADE)
 public class Count extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "count_id")

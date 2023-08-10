@@ -21,7 +21,6 @@ Match 테이블은 상대적으로 정적인 반면 visit table은 count를 소�
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@OnDelete(action = OnDeleteAction.CASCADE)
 public class Match extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +36,7 @@ public class Match extends BaseTimeEntity {
     private Member toMember;
 
     //todo : 고민 필요
-    @OneToOne(optional = true)
+    @OneToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "connected_match_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Match connectedMatch;
@@ -74,6 +73,10 @@ public class Match extends BaseTimeEntity {
 
     public Boolean isChecked() {
         return this.checked;
+    }
+
+    public void checkMatch() {
+        this.checked = true;
     }
 
     @Override

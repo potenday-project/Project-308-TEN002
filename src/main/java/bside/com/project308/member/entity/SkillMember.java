@@ -12,7 +12,6 @@ import java.util.Objects;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@OnDelete(action = OnDeleteAction.CASCADE)
 @Getter
 public class SkillMember extends BaseEntity {
 
