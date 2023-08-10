@@ -27,16 +27,20 @@ public class Visit extends BaseTimeEntity {
     @JoinColumn(name = "to_member_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Member toMember;
-    private Boolean matchResult;
+    private Boolean isLike;
 
-    private Visit(Member fromMember, Member toMember, Boolean matchResult) {
+    private Visit(Member fromMember, Member toMember, Boolean isLike) {
         this.fromMember = fromMember;
         this.toMember = toMember;
-        this.matchResult = matchResult;
+        this.isLike = isLike;
     }
 
     public static Visit of(Member fromMember, Member toMember, Boolean like) {
         return new Visit(fromMember, toMember, like);
+    }
+
+    public void updateLike(Boolean like) {
+        this.isLike = like;
     }
 
     @Override
