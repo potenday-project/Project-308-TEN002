@@ -14,26 +14,29 @@ public record UserPrincipal(
         String userProviderId,
         String username,
         String password,
+        String token,
         Collection<? extends GrantedAuthority> authorities,
         Map<String, Object> oAuth2Attributes
 
 ) implements UserDetails, OAuth2User {
 
-    public static UserPrincipal of(Long id, String userProviderId, String username, String password){
+    public static UserPrincipal of(Long id, String userProviderId, String username, String password, String token){
         return new UserPrincipal(
                 id,
                 userProviderId,
                 username,
                 password,
+                token,
                 AuthorityUtils.createAuthorityList("USER"),
                 null);
     }
-    public static UserPrincipal of(Long id, String userProviderId, String username, String password, Map<String, Object> oAuth2Attributes){
+    public static UserPrincipal of(Long id, String userProviderId, String username, String password, String token, Map<String, Object> oAuth2Attributes){
         return new UserPrincipal(
                 id,
                 userProviderId,
                 username,
                 password,
+                token,
                 AuthorityUtils.createAuthorityList("USER"),
                 oAuth2Attributes);
     }

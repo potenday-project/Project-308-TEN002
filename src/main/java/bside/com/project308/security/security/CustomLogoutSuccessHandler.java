@@ -9,9 +9,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import java.io.IOException;
@@ -23,7 +26,9 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        log.info("[] {} logout", ((UserPrincipal) authentication.getPrincipal()).id(), ((UserPrincipal) authentication.getPrincipal()).getUsername());
+        log.debug("[] {} logout success", ((UserPrincipal) authentication.getPrincipal()).id(), ((UserPrincipal) authentication.getPrincipal()).getUsername());
+
+
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
@@ -34,4 +39,6 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
         String body = objectMapper.writeValueAsString(errorResponse);
         response.getWriter().println(body);
     }
+
+
 }
