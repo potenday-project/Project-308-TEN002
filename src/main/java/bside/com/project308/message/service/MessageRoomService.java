@@ -55,9 +55,13 @@ public class MessageRoomService {
         Member fromMember = memberRepository.findById(fromMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
         Member toMember = memberRepository.findById(toMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
 
-        MessageRoom messageRoom = messageRoomRepository.findByFromMemberAndToMember(fromMember, toMember).orElseThrow(
+        MessageRoom messageRoom = messageRoomRepository.findByFromMemberAndToMember(fromMember, toMember)
+                                                       .orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
+
+
+        /*.orElseThrow(
                 () -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM)
-        );
+        );*/
 
         return MessageRoomDto.from(messageRoom);
     }
@@ -102,7 +106,14 @@ public class MessageRoomService {
 
     public MessageReadResponse getMessageInRoom(Long memberId, Long messageRoomId, Pageable pageable){
         MessageRoom messageRoom = messageRoomRepository.findById(messageRoomId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
-        MatchDto matchInfo = getMatchInfo(messageRoom.getFromMember(), messageRoom.getToMember());
+        MatchDto matchInfo = null;
+        if (messageRoom.getFromMember().getId() == memberId) {
+             matchInfo = getMatchInfo(messageRoom.getFromMember(), messageRoom.getToMember());
+        }else{
+            matchInfo = getMatchInfo(messageRoom.getToMember(), messageRoom.getFromMember());
+        }
+
+
         List<MessageDto> messageDtos = readAllMessageInRoom(memberId, messageRoomId, pageable);
         List<MessageResponse> messageResponses = messageDtos.stream().map(MessageResponse::from).toList();
         return new MessageReadResponse(memberId, matchInfo.id(), messageResponses);
@@ -116,10 +127,14 @@ public class MessageRoomService {
 
     public void deleteMessageRoom(Member fromMember, Member toMember) {
         //todo: 삭제 로직 수정해야함
-        MessageRoom messageRoom = messageRoomRepository.findByFromMemberAndToMember(fromMember, toMember).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
+        //MessageRoom messageRoom = messageRoomRepository.findByFromMemberAndToMember(fromMember, toMember).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
+        MessageRoom messageRoom = messageRoomRepository.findByFromMemberAndToMember(fromMember, toMember)
+                                                       .orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
+
         messageRoom.removeLastMessage();
         em.flush();
         messageRoomRepository.delete(messageRoom);
     }
+
 
 }

@@ -19,8 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -50,7 +48,7 @@ public class MatchService {
         return matchAlgorithm.getMatchPartner(memberId);
     }
 
-    public MatchDto match(Member fromMember, Member toMember) {
+    public MatchDto createMatch(Member fromMember, Member toMember) {
          matchRepository.findByFromMemberAndToMember(fromMember, toMember).ifPresent(
                  member -> {
                      throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST);

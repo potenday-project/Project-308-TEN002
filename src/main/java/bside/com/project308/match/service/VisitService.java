@@ -1,5 +1,6 @@
 package bside.com.project308.match.service;
 
+import bside.com.project308.common.config.CacheConfig;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.match.dto.MatchDto;
@@ -14,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -22,7 +22,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
 
 @RequiredArgsConstructor
 @Service
@@ -70,7 +69,7 @@ public class VisitService {
             Optional<Visit> isVisited = visitRepository.findByFromMemberAndToMember(toMember, fromMember);
             if (isVisited.isPresent() && isVisited.get().getIsLike()) {
 
-                match = matchService.match(fromMember, toMember);
+                match = matchService.createMatch(fromMember, toMember);
 
                 //todo: 양방향을 묶을 수 있는 로직이 필요
                 visitRepository.delete(isVisited.get());
@@ -83,7 +82,7 @@ public class VisitService {
     }
 
     private void evictVisitMember(Long fromMemberId, MemberDto memberDto) {
-        Cache matchPartnerCache = cacheManager.getCache("matchPartner");
+        Cache matchPartnerCache = cacheManager.getCache(CacheConfig.CACHE_NAME_MATH_PARTNER);
         List<MemberDto> matchPartners = matchPartnerCache.get(fromMemberId, LinkedList.class);
 
         if (!CollectionUtils.isEmpty(matchPartners)) {
