@@ -1,5 +1,7 @@
 package bside.com.project308.security.security;
 
+import bside.com.project308.common.config.CacheConfig;
+import bside.com.project308.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,7 @@ public class CustomLogoutHandler implements LogoutHandler {
             return;
         }
         String token = userPrincipal.token();
-        cacheManager.getCache("expiredToken").put(token, "expired");
+        cacheManager.getCache(CacheConfig.CACHE_NAME_MATH_EXPIRED_TOKEN).put(token, JwtTokenProvider.TOKEN_EXPIRED);
         log.debug("{} is expired", token);
     }
 }

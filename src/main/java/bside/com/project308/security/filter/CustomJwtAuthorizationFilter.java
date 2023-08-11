@@ -59,7 +59,7 @@ public class CustomJwtAuthorizationFilter extends OncePerRequestFilter {
         token = token.replace(JwtTokenProvider.HEADER_PREFIX, "");
 
         String expiredToken = cacheManager.getCache("expiredToken").get(token, String.class);
-        if (StringUtils.hasText(expiredToken) && expiredToken.equals("expired")) {
+        if (StringUtils.hasText(expiredToken) && expiredToken.equals(JwtTokenProvider.TOKEN_EXPIRED)) {
             token = null;
         }
         return token;
