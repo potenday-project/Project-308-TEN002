@@ -52,6 +52,11 @@ public class Count extends BaseTimeEntity {
         return this.curCount;
     }
 
+    public void changeMaxCount(int maxCount) {
+        Assert.state(maxCount >= 5, "최소 매치 횟수는 5회입니다.");
+        this.maxCount = maxCount;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -7,6 +7,7 @@ import bside.com.project308.match.entity.Visit;
 import bside.com.project308.match.repository.TodayMatchRepository;
 import bside.com.project308.match.repository.VisitRepository;
 import bside.com.project308.match.repository.VisitedMemberCursorRepository;
+import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.entity.Member;
 import bside.com.project308.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
 
@@ -37,15 +40,14 @@ public class VisitService {
 
     public Optional<MatchDto> postLike(Long fromMemberId, Long toMemberId, boolean like){
         //방문 사용자를 매치 대상자 캐시에서 제외
-        evictVisitMember(fromMemberId);
 
 
 
         Member fromMember = memberRepository.findById(fromMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
         Member toMember = memberRepository.findById(toMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
-        log.debug("delete process start");
+        evictVisitMember(fromMemberId, MemberDto.from(toMember));
         todayMatchRepository.deleteByFromMemberAndToMember(fromMember, toMember);
-        log.debug("delete process end");
+
 /*
         Optional<VisitedMemberCursor> byMember = visitedMemberCursorRepository.findByMember(fromMember);
         if (byMember.isPresent()) {
@@ -80,15 +82,16 @@ public class VisitService {
         return Optional.ofNullable(match);
     }
 
-    private void evictVisitMember(Long fromMemberId) {
+    private void evictVisitMember(Long fromMemberId, MemberDto memberDto) {
         Cache matchPartnerCache = cacheManager.getCache("matchPartner");
-        Queue queue = matchPartnerCache.get(fromMemberId, Queue.class);
-        if (!CollectionUtils.isEmpty(queue)) {
-            queue.poll();
-            if (queue.isEmpty()) {
+        List<MemberDto> matchPartners = matchPartnerCache.get(fromMemberId, LinkedList.class);
+
+        if (!CollectionUtils.isEmpty(matchPartners)) {
+            matchPartners.remove(memberDto);
+            if (matchPartners.isEmpty()) {
                 matchPartnerCache.evict(fromMemberId);
             }
-            log.debug("q log {}", queue);
+            log.debug("match list log {}", matchPartners);
         }
     }
 }

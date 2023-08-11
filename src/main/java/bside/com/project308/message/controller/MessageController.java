@@ -3,6 +3,7 @@ package bside.com.project308.message.controller;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.response.Response;
 import bside.com.project308.common.response.ResponseWithUser;
+import bside.com.project308.match.service.MatchService;
 import bside.com.project308.message.dto.MessageDto;
 import bside.com.project308.message.dto.MessageRoomDto;
 import bside.com.project308.message.dto.MessageRoomWithNewMessageCheck;
@@ -38,20 +39,17 @@ public class MessageController {
     @PostMapping("/{messageRoomId}")
     public ResponseEntity<Response> writeMessage(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody MessageRequest messageRequest) {
         messageRoomService.writeMessage(userPrincipal.id(), messageRequest);
-        List<MessageDto> messageDtos = messageRoomService.readAllMessageInRoom(userPrincipal.id(), messageRequest.messageRoomId(), null);
-
-        List<MessageResponse> messages = messageDtos.stream().map(MessageResponse::from).toList();
-        Response responseBody = Response.success(ResponseCode.SUCCESS.getCode(), new MessageReadResponse(userPrincipal.id(), messages));
+        MessageReadResponse messageInRoom = messageRoomService.getMessageInRoom(userPrincipal.id(), messageRequest.messageRoomId(), null);
+        Response responseBody = Response.success(ResponseCode.SUCCESS.getCode(),messageInRoom);
 
         return ResponseEntity.status(HttpStatus.OK).body(responseBody);
     }
 
     @GetMapping("/{messageRoomId}")
     public ResponseEntity<Response> readMessageInRoom(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable Long messageRoomId) {
-        List<MessageDto> messageDtos = messageRoomService.readAllMessageInRoom(userPrincipal.id(), messageRoomId, null);
+        MessageReadResponse messageInRoom = messageRoomService.getMessageInRoom(userPrincipal.id(), messageRoomId, null);
+        Response responseBody = Response.success(ResponseCode.SUCCESS.getCode(),messageInRoom);
 
-        List<MessageResponse> messages = messageDtos.stream().map(MessageResponse::from).toList();
-        Response responseBody = Response.success(ResponseCode.SUCCESS.getCode(), new MessageReadResponse(userPrincipal.id(), messages));
         return ResponseEntity.status(HttpStatus.OK).body(responseBody);
     }
 }

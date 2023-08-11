@@ -76,7 +76,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
         visitedMemberDtos.addAll(matchedMemberDtos);
 
         if (visitedMemberDtos.containsAll(allInterestingMemberDto)) {
-            log.info("모든 사용자를 방문하여 매치를 초기화합니다.");
+            log.debug("모든 사용자를 방문하여 매치를 초기화합니다.");
             visitRepository.deleteByFromMember(member);
             matchedMemberDtos = new HashSet<>();
         }
@@ -156,7 +156,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
 
 
         if (visitedMembers.containsAll(allInterestingMember)) {
-            log.info("모든 사용자를 방문하여 매치를 초기화합니다.");
+            log.debug("모든 사용자를 방문하여 매치를 초기화합니다.");
             visitRepository.deleteByFromMember(member);
             visitedMembers = new HashSet<>();
         }
@@ -176,7 +176,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
             throw new ResourceNotFoundException(ResponseCode.NO_MORE_PARTNER, ResponseCode.NO_MORE_PARTNER.getDesc());
         }
         if (members.size() >= 10) {
-            members = members.subList(0, 10);
+            members = members.subList(0, 5);
         }
 
         todayMatches = members.stream().map(toMember -> TodayMatch.of(member, toMember)).toList();

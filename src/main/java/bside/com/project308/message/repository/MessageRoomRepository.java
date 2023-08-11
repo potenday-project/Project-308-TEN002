@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface MessageRoomRepository extends JpaRepository<MessageRoom, Long> {
     Optional<MessageRoom> findByFromMemberAndToMember(Member fromMember, Member toMember);
     List<MessageRoom> findByFromMemberOrToMember(Member fromMember, Member toMember);
+
+    void deleteByFromMemberAndToMember(Member fromMember, Member toMember);
 }

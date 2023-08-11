@@ -34,6 +34,15 @@ public class MatchService {
     //todo : 향후 event방식으로 변경해서 결합도를 낮춰야함
     private final MessageRoomService messageRoomService;
 
+
+    public MatchDto getMatch(Long fromMemberId, Long toMemberId) {
+        Member fromMember = memberRepository.findById(fromMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        Member toMember = memberRepository.findById(toMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+
+        Match match = matchRepository.findByFromMemberAndToMember(fromMember, toMember).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
+        return MatchDto.from(match);
+    }
+
     public List<MemberDto> getTodayMatchPartner(Long memberId) {
         return matchAlgorithm.getTodayMatchPartner(memberId);
     }
@@ -73,6 +82,8 @@ public class MatchService {
     }
 
     public void deleteMatch(Long fromMemberId, Long matchId) {
+        Match match = matchRepository.findByFromMemberIdAndId(fromMemberId, matchId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
+        messageRoomService.deleteMessageRoom(match.getFromMember(), match.getToMember());
         matchRepository.deleteByFromMemberIdAndId(fromMemberId, matchId);
 
         //todo: 양방향을 묶을 수 있는 로직이 필요

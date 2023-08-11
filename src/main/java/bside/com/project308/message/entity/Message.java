@@ -23,8 +23,8 @@ public class Message extends BaseEntity {
     private Long id;
     @Lob
     private String content;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "message_room_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "message_room_id", nullable = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private MessageRoom messageRoom;
     private boolean isFromMemberMessage;
