@@ -23,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -54,6 +56,13 @@ public class MatchFeedController {
         1. userPrincipal로 검색하면 match상대방이 한 명 나옴
         * */
 
+        try{
+            countService.getMatchCount(userPrincipal.id());
+        }catch (InvalidAccessException e){
+            return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), Collections.emptyList()));
+
+        }
+
         List<MemberDto> matchPartners = matchService.getTodayMatchPartner(userPrincipal.id());
         List<MemberResponse> matchPartnerResponses = matchPartners.stream().map(MemberResponse::from).toList();
         if (matchPartnerResponses.size() > 5) {
@@ -72,7 +81,10 @@ public class MatchFeedController {
         }
 
         //count를 소진한 경우에는 exception이 발생함
+
         Integer usedCount = countService.matchUserAndGetMatchCount(userPrincipal.id());
+
+
 
         Optional<MatchDto> matchDto = visitService.postLike(userPrincipal.id(), matchRequest.toMemberId(), matchRequest.like());
 

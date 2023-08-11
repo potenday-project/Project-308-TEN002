@@ -5,12 +5,14 @@ import bside.com.project308.security.filter.CustomJwtLoginFilter;
 import bside.com.project308.security.filter.CustomLoginFilter;
 import bside.com.project308.security.security.CustomAccessDeniedHandler;
 import bside.com.project308.security.security.CustomAuthenticationEntrypoint;
+import bside.com.project308.security.security.CustomLogoutHandler;
 import bside.com.project308.security.security.CustomLogoutSuccessHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -34,7 +36,7 @@ import java.util.Arrays;
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -42,6 +44,7 @@ public class SecurityConfig {
     private final CustomLoginFilter customLoginFilter;
     private final CustomJwtAuthorizationFilter jwtAuthorizationFilter;
     private final CustomJwtLoginFilter customJwtLoginFilter;
+    private final CacheManager cacheManager;
     @Bean
     public SecurityFilterChain localFilterChain(HttpSecurity httpSecurity) throws Exception {
 
@@ -72,7 +75,8 @@ public class SecurityConfig {
                     .exceptionHandling(exConfigurer -> exConfigurer
                                    .authenticationEntryPoint(customAuthenticationEntrypoint())
                                     .accessDeniedHandler(customAccessDeniedHandler()))
-                .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler()));
+                .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler())
+                                                            .addLogoutHandler(customLogoutHandler()));
 
 /*        httpSecurity
                     .oauth2Login(oAuthConfigurer -> oAuthConfigurer
@@ -111,7 +115,8 @@ public class SecurityConfig {
                     .addFilterAfter(customJwtLoginFilter, LogoutFilter.class)
                     .addFilterBefore(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
                     .addFilterAfter(customLoginFilter, CustomJwtLoginFilter.class)
-                    .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler()));
+                    .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler())
+                                                                .addLogoutHandler(customLogoutHandler()));
 
         return httpSecurity.build();
     }
@@ -136,6 +141,11 @@ public class SecurityConfig {
         return new CustomLogoutSuccessHandler(objectMapper);
     }
 
+    @Bean
+    public CustomLogoutHandler customLogoutHandler() {
+        return new CustomLogoutHandler(cacheManager);
+    }
+
 
     @Bean
     public AuthenticationEntryPoint customAuthenticationEntrypoint() {
@@ -146,5 +156,7 @@ public class SecurityConfig {
     public AccessDeniedHandler customAccessDeniedHandler() {
         return new CustomAccessDeniedHandler(objectMapper);
     }
+
+
 
 }

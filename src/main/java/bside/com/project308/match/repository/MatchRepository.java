@@ -19,4 +19,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     @EntityGraph(attributePaths = {"fromMember", "toMember"})
     List<Match> findByFromMemberAndCheckedFalse(Member fromMember);
     void deleteByFromMemberIdAndId(Long fromMemberId, Long matchId);
+    @EntityGraph(attributePaths = {"fromMember", "toMember"})
+
+    Optional<Match> findByFromMemberIdAndId(Long fromMemberId, Long matchId);
 }

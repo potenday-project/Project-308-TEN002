@@ -19,6 +19,24 @@ public class CountService {
 
     private final CountRepository countRepository;
     private final MemberRepository memberRepository;
+
+    public Integer getMatchCount(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        Count memberCount = countRepository.findByMember(member).orElseGet(() -> {
+
+            Count newCount = Count.of(member);
+            countRepository.save(newCount);
+            return newCount;
+        });
+
+        if(memberCount.isExhausted()){
+            throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.MATCH_COUNT_EXHAUSTED);
+        }
+
+        return memberCount.getCurCount();
+
+    }
+
     public Integer matchUserAndGetMatchCount(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
         Count memberCount = countRepository.findByMember(member).orElseGet(() -> {

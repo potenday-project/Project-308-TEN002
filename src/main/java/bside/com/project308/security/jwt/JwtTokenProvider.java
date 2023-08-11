@@ -33,7 +33,6 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        log.info("init");
         byte[] keyBytes = Decoders.BASE64.decode(this.secret);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -67,7 +66,8 @@ public class JwtTokenProvider {
                 claims.get("id", Long.class),
                 claims.get("userProviderId", String.class),
                 claims.get("username", String.class),
-                "aaa");
+                null,
+                token);
 
         Authentication authentication = new CustomAuthenticationToken(userPrincipal, userPrincipal.getAuthorities());
         return authentication;

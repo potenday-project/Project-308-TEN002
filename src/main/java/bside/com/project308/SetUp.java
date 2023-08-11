@@ -1,7 +1,9 @@
 package bside.com.project308;
 
+import bside.com.project308.match.entity.Count;
 import bside.com.project308.match.entity.Match;
 import bside.com.project308.match.entity.Visit;
+import bside.com.project308.match.repository.CountRepository;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.match.repository.VisitRepository;
 import bside.com.project308.match.service.MatchService;
@@ -29,10 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
@@ -50,7 +49,8 @@ public class SetUp {
     private final MatchService matchService;
     private final VisitService visitService;
     private final MessageRoomService messageRoomService;
-
+    private final CountRepository countRepository;
+    public static List<Member> members = new ArrayList<>();
     @PostConstruct
     @Transactional
     public void init() {
@@ -58,11 +58,12 @@ public class SetUp {
         tmpl.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                List<Member> members = new ArrayList<>();
+                //List<Member> members = new ArrayList<>();
                 List<Interest> interests = new ArrayList<>();
                 List<Skill> skills = skillSetup();
                 List<SkillMember> skillMembers = new ArrayList<>();
                 Position[] values = Position.values();
+
 
 
                 skillRepository.saveAll(skills);
@@ -136,7 +137,12 @@ public class SetUp {
                                       .imgUrl("https://i.pravatar.cc/150?u=fake@pravatar.com")
                                       .build();
 
-                Interest customIterest = Interest.of("BACK_END", customMember);
+                List<Interest> customIterests = Arrays.asList(Interest.of("BACK_END", customMember),
+                        Interest.of("FRONT_END", customMember),
+                        Interest.of("DESIGNER", customMember),
+                        Interest.of("PM_PO", customMember)
+
+                );
 
                 List<Skill> customSkilll = skills.stream()
                                                   .filter(skill -> skill.getPosition() == customMember.getPosition())
@@ -145,7 +151,7 @@ public class SetUp {
 
                 List<SkillMember> skillMemberTable = customSkilll.stream().map(skill -> SkillMember.of(skill, customMember)).toList();
                 memberRepository.save(customMember);
-                interestRepository.save(customIterest);
+                interestRepository.saveAll(customIterests);
                 skillMemberRepository.saveAll(skillMemberTable);
                 visitService.postLike(members.get(0).getId(), customMember.getId(), true);
                 IntStream.rangeClosed(1, 40)
@@ -176,6 +182,47 @@ public class SetUp {
 
                 messageRoomService.writeMessage(customMember.getId(), messageRequest1);
                 messageRoomService.writeMessage(customMember.getId(), messageRequest3);
+
+                Count customCount = Count.of(customMember);
+                countRepository.save(customCount);
+                customCount.changeMaxCount(1000);
+
+
+                for (int i = 10; i < members.size(); i++) {
+                    visitService.postLike(members.get(i).getId(), customMember.getId(), true);
+                }
+
+                Member customMember2 = Member.builder()
+                                            .userProviderId("2955591080")
+                                            .username("선종우")
+                                            .password("ddd")
+                                            .registrationSource(RegistrationSource.KAKAO)
+                                            .position(Position.BACK_END)
+                                            .intro("안녕하세요")
+                                            .imgUrl("https://i.pravatar.cc/150?u=fake@pravatar.com")
+                                            .build();
+
+
+                List<Interest> customIterests2 = Arrays.asList(Interest.of("BACK_END", customMember2),
+                        Interest.of("FRONT_END", customMember2),
+                        Interest.of("DESIGNER", customMember2),
+                        Interest.of("PM_PO", customMember2)
+
+                );
+
+                List<Skill> customSkilll2 = skills.stream()
+                                                 .filter(skill -> skill.getPosition() == customMember.getPosition())
+                                                 .sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
+                                                 .toList().subList(0, 4);
+
+                List<SkillMember> skillMemberTable2 = customSkilll.stream().map(skill -> SkillMember.of(skill, customMember)).toList();
+                memberRepository.save(customMember2);
+                interestRepository.saveAll(customIterests2);
+                skillMemberRepository.saveAll(skillMemberTable2);
+                for (Member member : members) {
+                    visitService.postLike(member.getId(), customMember2.getId(), true);
+                }
+
 
             }
 

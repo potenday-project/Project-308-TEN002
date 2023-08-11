@@ -21,6 +21,7 @@ Match 테이블은 상대적으로 정적인 반면 visit table은 count를 소�
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Table(name = "match_events")
 public class Match extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
