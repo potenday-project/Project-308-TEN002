@@ -5,6 +5,7 @@ import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.DuplicatedMemberException;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.common.exception.UnAuthorizedAccessException;
+import bside.com.project308.match.entity.Match;
 import bside.com.project308.match.repository.CountRepository;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.member.constant.Position;
@@ -46,12 +47,19 @@ public class MemberService {
     private final SkillRepository skillRepository;
     private final InterestRepository interestRepository;
     private final CacheManager cacheManager;
+    private final MatchRepository matchRepository;
 
 
 
     @Transactional(readOnly = true)
     public MemberDto getByUserProviderId(String userProviderId) {
         Member member = memberRepository.findByUserProviderId(userProviderId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        return MemberDto.from(member);
+    }
+
+    public MemberDto getByUserProviderIdAndUpdateLastAccessedTime(String userProviderId) {
+        Member member = memberRepository.findByUserProviderId(userProviderId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        member.updateLastLoginTime();
         return MemberDto.from(member);
     }
 
@@ -162,7 +170,11 @@ public class MemberService {
 
     public void delete(Long memberId) {
         String expiredToken = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).token();
-        cacheManager.getCache(CacheConfig.CACHE_NAME_MATH_EXPIRED_TOKEN).put(expiredToken, JwtTokenProvider.TOKEN_EXPIRED);
+        //session기반 접속인 경우
+        if(expiredToken != null){
+            cacheManager.getCache(CacheConfig.CACHE_NAME_MATH_EXPIRED_TOKEN).put(expiredToken, JwtTokenProvider.TOKEN_EXPIRED);
+        }
+
         Member member = getMember(memberId);
         memberRepository.delete(member);
     }
