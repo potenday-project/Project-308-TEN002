@@ -35,7 +35,7 @@ public class MessageRoom extends BaseTimeEntity {
     //match되지 않았는데 messaging을 할 여지가 있을까?
     //private Match match;
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "last_message_id", referencedColumnName = "message_id", nullable = true)
+    @JoinColumn(name = "last_message_id", referencedColumnName = "message_id", nullable = true, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Message lastMessage;
     private LocalDateTime createdTime;
 

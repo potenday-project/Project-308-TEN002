@@ -76,8 +76,8 @@ public class MessageRoomService {
                             .map(messageRoom -> {
                                 if(messageRoom.getLastMessage() == null){
                                     MessageDto messageDto = memberId == messageRoom.getFromMember().getId() ?
-                                            MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getToMember().getId()) :
-                                            MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getFromMember().getId());
+                                            MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getToMember()) :
+                                            MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getFromMember());
                                     return MessageRoomWithNewMessageCheck.from(memberId, messageRoom, messageDto, false);
                                 }
 

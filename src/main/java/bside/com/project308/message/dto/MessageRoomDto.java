@@ -20,7 +20,7 @@ public record MessageRoomDto(Long id,
         MessageDto messageDto = null;
         //todo : lastMessage null에 대한 해결 필요
         if (messageRoom.getLastMessage() == null) {
-            messageDto = MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getToMember().getId());
+            messageDto = MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getToMember());
         }else{
             messageDto = MessageDto.from(messageRoom.getLastMessage());
         }
