@@ -11,6 +11,7 @@ import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.entity.Member;
 import bside.com.project308.member.repository.MemberRepository;
+import bside.com.project308.member.service.MemberService;
 import bside.com.project308.message.service.MessageRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -33,6 +32,7 @@ public class MatchService {
     private final MemberRepository memberRepository;
     //todo : 향후 event방식으로 변경해서 결합도를 낮춰야함
     private final MessageRoomService messageRoomService;
+    private final MemberService memberService;
 
 
     public MatchDto getMatch(Long fromMemberId, Long toMemberId) {
@@ -50,7 +50,7 @@ public class MatchService {
         return matchAlgorithm.getMatchPartner(memberId);
     }
 
-    public MatchDto match(Member fromMember, Member toMember) {
+    public MatchDto createMatch(Member fromMember, Member toMember) {
          matchRepository.findByFromMemberAndToMember(fromMember, toMember).ifPresent(
                  member -> {
                      throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST);
@@ -99,6 +99,22 @@ public class MatchService {
         }
 
         match.checkMatch();
+    }
+
+    public MemberDto getMatchedMemberInfo(Long fromMemberId, Long matchId, Long toMemberId) {
+
+        Match match = matchRepository.findById(matchId).orElseThrow(
+                () -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND)
+        );
+
+
+        if (fromMemberId != match.getFromMember().getId() && fromMemberId != match.getToMember().getId()) {
+            throw new UnAuthorizedAccessException(ResponseCode.UNAUTHORIZED_MEMBER_ACCESS);
+        }
+
+
+        Member toMember = fromMemberId == match.getFromMember().getId() ? match.getToMember() : match.getFromMember();
+        return memberService.getMemberInfo(toMember.getId());
     }
 
 

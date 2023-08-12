@@ -12,6 +12,7 @@ import bside.com.project308.member.dto.request.MemberUpdateRequest;
 import bside.com.project308.member.dto.request.SignUpRequest;
 import bside.com.project308.member.dto.response.MemberResponse;
 import bside.com.project308.member.entity.Member;
+import bside.com.project308.member.service.InitialMemberService;
 import bside.com.project308.member.service.MemberService;
 import bside.com.project308.member.service.SkillService;
 import bside.com.project308.security.security.UserPrincipal;
@@ -33,6 +34,7 @@ public class MemberController {
     private final MemberService memberService;
     private final SkillService skillService;
     private final VisitService visitService;
+    private final InitialMemberService initialMemberService;
 
 /*    @GetMapping
     public ResponseEntity<Response> getMember(@AuthenticationPrincipal UserPrincipal userPrincipal) {
@@ -69,8 +71,12 @@ public class MemberController {
             throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.SIGN_UP_FAIL, "회원 가입이 불가합니다.");
         }*/
 
+        MemberDto createdMember = initialMemberService.singUp(signUpRequest);
+
+
+
+/*
         //todo: 삭제 대상 코드
-        MemberDto createdMember = memberService.singUp(signUpRequest);
         if ("2947153334".equals(signUpRequest.userProviderId())) {
             log.error("---------------------지혜님 로그인 ----------------------------------------");
             List<Member> members = SetUp.members;
@@ -79,6 +85,7 @@ public class MemberController {
             }
 
         }
+*/
 
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Response.success(ResponseCode.SIGNUP_SUCCESS.getCode(), MemberResponse.from(createdMember)));

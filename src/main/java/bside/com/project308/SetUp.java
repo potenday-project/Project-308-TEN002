@@ -58,21 +58,57 @@ public class SetUp {
         tmpl.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                //List<Member> members = new ArrayList<>();
+
+                List<Member> members = new ArrayList<>();
                 List<Interest> interests = new ArrayList<>();
                 List<Skill> skills = skillSetup();
+                skillRepository.saveAll(skills);
+
+
                 List<SkillMember> skillMembers = new ArrayList<>();
                 Position[] values = Position.values();
 
 
 
-                skillRepository.saveAll(skills);
+                Member initialMember = Member.builder()
+                                      .userProviderId("1")
+                                      .username("선종우")
+                                      .password("ddd")
+                                      .registrationSource(RegistrationSource.KAKAO)
+                                      .position(Position.BACK_END)
+                                      .intro("안녕하세요! Techky팀의 백엔드 엔지니어입니다")
+                                      .imgUrl("https://project-308.kro.kr/images/12.png")
+                                      .build();
+
+
+
+                List<Skill> initialSelectedSkill = skills.stream()
+                                                  .filter(skill -> skill.getPosition() == initialMember.getPosition())
+                                                  .sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
+                                                  .toList().subList(0, 4);
+
+                List<SkillMember> initialSkillMemberTable = initialSelectedSkill.stream().map(skill -> SkillMember.of(skill, initialMember)).toList();
+                skillMembers.addAll(initialSkillMemberTable);
+                List<Interest> initailIterest = Arrays.asList(Interest.of("BACK_END", initialMember),
+                        Interest.of("FRONT_END", initialMember),
+                        Interest.of("DESIGNER", initialMember),
+                        Interest.of("PM_PO", initialMember)
+
+                );
+                memberRepository.save(initialMember);
+                interestRepository.saveAll(initailIterest);
+                skillMemberRepository.saveAll(skillMembers);
+
+
+
+
+
                 long start = 2000000000L;
                 long end = 3000000000L;
                 long range = end - start + 1;
                 Random generator = new Random();
 
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 10; i++) {
                     //long id = (long)(generator.nextDouble() * range + start);
                     Member member = Member.builder()
                                           .userProviderId(String.valueOf(1000 + i))
@@ -103,7 +139,7 @@ public class SetUp {
                 //1번 멤버는 모든 사람과 매칭됨
                 List<Match> matches = new ArrayList<>();
                 for (int i = 1; i < members.size(); i++) {
-                    matchService.match(members.get(0), members.get(i));
+                    matchService.createMatch(members.get(0), members.get(i));
                 }
 
                 List<Visit> visits1 = new ArrayList<>();
@@ -116,7 +152,7 @@ public class SetUp {
                 }
 
                 visitRepository.saveAll(visits1);
-                List<Visit> visits2 = new ArrayList<>();
+/*                List<Visit> visits2 = new ArrayList<>();
                 //3 ~ 4멤버는 자기보다 10번째 더 많은 사람까지 좋아요를 눌러놓음
                 for (int i = 3; i < 5; i++) {
                     for (int j = i + 1; j < i + 10; j++) {
@@ -125,7 +161,8 @@ public class SetUp {
                     }
                 }
 
-                visitRepository.saveAll(visits2);
+                visitRepository.saveAll(visits2);*/
+/*
 
                 Member customMember = Member.builder()
                                       .userProviderId("2947153334")
@@ -154,15 +191,15 @@ public class SetUp {
                 interestRepository.saveAll(customIterests);
                 skillMemberRepository.saveAll(skillMemberTable);
                 visitService.postLike(members.get(0).getId(), customMember.getId(), true);
-                IntStream.rangeClosed(1, 40)
+                IntStream.rangeClosed(1, 5)
                                  .forEach(i -> visitService.postLike(members.get(i).getId(), customMember.getId(), true));
 
 
 
 
-                matchService.match(customMember, members.get(3));
-                matchService.match(customMember, members.get(5));
-                matchService.match(customMember, members.get(12));
+                matchService.createMatch(customMember, members.get(3));
+                matchService.createMatch(customMember, members.get(5));
+                matchService.createMatch(customMember, members.get(12));
 
 
                 List<MessageRoomWithNewMessageCheck> allMessageRoomList = messageRoomService.getAllMessageRoomList(customMember.getId());
@@ -186,13 +223,16 @@ public class SetUp {
                 Count customCount = Count.of(customMember);
                 countRepository.save(customCount);
                 customCount.changeMaxCount(1000);
+*/
+/*
 
 
                 for (int i = 10; i < members.size(); i++) {
                     visitService.postLike(members.get(i).getId(), customMember.getId(), true);
                 }
+*/
 
-                Member customMember2 = Member.builder()
+   /*             Member customMember2 = Member.builder()
                                             .userProviderId("2955591080")
                                             .username("선종우")
                                             .password("ddd")
@@ -222,7 +262,7 @@ public class SetUp {
                 for (Member member : members) {
                     visitService.postLike(member.getId(), customMember2.getId(), true);
                 }
-
+*/
 
             }
 
@@ -243,7 +283,7 @@ public class SetUp {
                 Skill.of("다양한 부서와 협업 가능", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("문서 작성", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("피그마", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
-                Skill.of("\"SQL\"L", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
+                Skill.of("\"SQL\"", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("GA", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("PPT", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("UX리서치", Position.valueOf("DESIGNER"), SkillCategory.FRAME_WORK),

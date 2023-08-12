@@ -30,7 +30,7 @@ public class Count extends BaseTimeEntity {
     private Boolean exhausted;
 
     private Count(Member member, Integer curCount, Boolean exhausted) {
-        this.maxCount = 5;
+        this.maxCount = 1000;
         this.member = member;
         this.curCount = curCount;
         this.exhausted = exhausted;

@@ -1,5 +1,6 @@
 package bside.com.project308.match.algorithm;
 
+import bside.com.project308.common.config.CacheConfig;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.match.entity.Match;
@@ -119,8 +120,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
     }
 
     @Override
-    @Cacheable(value = "matchPartner", key = "#memberId")
-    //todo: queue로 casting할 때 안전성을 위해 현재는 일단 linkedlist로, 향후 인터페이스로 변경 필요
+    @Cacheable(value = CacheConfig.CACHE_NAME_MATH_PARTNER, key = "#memberId")
     public LinkedList<MemberDto> getTodayMatchPartner(Long memberId) {
 
 

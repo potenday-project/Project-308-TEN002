@@ -1,9 +1,11 @@
 package bside.com.project308.member.service;
 
+import bside.com.project308.common.config.CacheConfig;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.DuplicatedMemberException;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.common.exception.UnAuthorizedAccessException;
+import bside.com.project308.match.entity.Match;
 import bside.com.project308.match.repository.CountRepository;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.member.constant.Position;
@@ -21,9 +23,13 @@ import bside.com.project308.member.repository.InterestRepository;
 import bside.com.project308.member.repository.MemberRepository;
 import bside.com.project308.member.repository.SkillMemberRepository;
 import bside.com.project308.member.repository.SkillRepository;
+import bside.com.project308.security.jwt.JwtTokenProvider;
+import bside.com.project308.security.security.UserPrincipal;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -40,11 +46,20 @@ public class MemberService {
     private final SkillMemberRepository skillMemberRepository;
     private final SkillRepository skillRepository;
     private final InterestRepository interestRepository;
+    private final CacheManager cacheManager;
+    private final MatchRepository matchRepository;
+
 
 
     @Transactional(readOnly = true)
     public MemberDto getByUserProviderId(String userProviderId) {
         Member member = memberRepository.findByUserProviderId(userProviderId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        return MemberDto.from(member);
+    }
+
+    public MemberDto getByUserProviderIdAndUpdateLastAccessedTime(String userProviderId) {
+        Member member = memberRepository.findByUserProviderId(userProviderId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        member.updateLastLoginTime();
         return MemberDto.from(member);
     }
 
@@ -88,6 +103,7 @@ public class MemberService {
 
         List<Interest> interests = signUpRequest.interest().stream().map(interest -> Interest.of(interest, member)).toList();
         interestRepository.saveAll(interests);
+
 
         //todo: 양방향 연관관계 및 fetch join에 대해서는 고민, 데이터 뻥튀기 문제 있음
         return MemberDto.from(member,
@@ -153,6 +169,12 @@ public class MemberService {
     }
 
     public void delete(Long memberId) {
+        String expiredToken = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).token();
+        //session기반 접속인 경우
+        if(expiredToken != null){
+            cacheManager.getCache(CacheConfig.CACHE_NAME_MATH_EXPIRED_TOKEN).put(expiredToken, JwtTokenProvider.TOKEN_EXPIRED);
+        }
+
         Member member = getMember(memberId);
         memberRepository.delete(member);
     }

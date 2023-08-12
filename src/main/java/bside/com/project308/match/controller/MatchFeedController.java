@@ -6,6 +6,7 @@ import bside.com.project308.common.response.Response;
 import bside.com.project308.match.dto.MatchDto;
 import bside.com.project308.match.dto.request.MatchRequest;
 import bside.com.project308.match.dto.response.LikeResponse;
+import bside.com.project308.match.dto.response.MatchMemberResponse;
 import bside.com.project308.match.dto.response.MatchResponse;
 import bside.com.project308.match.service.CountService;
 import bside.com.project308.match.service.MatchService;
@@ -127,5 +128,16 @@ public class MatchFeedController {
                                                @PathVariable Long matchId) {
         matchService.checkMatch(userPrincipal.id(), matchId);
         return ResponseEntity.ok(Response.success(ResponseCode.SUCCESS.getCode()));
+    }
+
+    @GetMapping("/{matchId}/member/{matchedMemberId}")
+    public ResponseEntity<Response> getMemberInfo(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                  @PathVariable Long matchId,
+                                                  @PathVariable Long matchedMemberId) {
+
+        MemberDto matchedMemberInfo = matchService.getMatchedMemberInfo(userPrincipal.id(), matchId, matchedMemberId);
+        MatchMemberResponse matchMemberResponse = new MatchMemberResponse(matchId, userPrincipal.id(), MemberResponse.from(matchedMemberInfo));
+        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), matchMemberResponse));
+
     }
 }

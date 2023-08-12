@@ -25,6 +25,7 @@ public class JwtTokenProvider {
     private final long tokenTime;
     private Key key;
     public static final String HEADER_PREFIX = "Bearer ";
+    public static final String TOKEN_EXPIRED = "expired";
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret, @Value("${jwt.token-time}") long tokenTime) {
         this.secret = secret;
