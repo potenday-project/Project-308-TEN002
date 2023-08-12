@@ -13,4 +13,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Set<Member> findTop50ByIdGreaterThanAndPositionInAndIdNot(Long lastVisitedId, List<Position> positions, Long memberId);
     Set<Member> findSetByPositionInAndIdNot(List<Position> positions, Long memberId);
     List<Member> findInitialMemberByIdIn(List<Long> memberIds);
+    List<Member> findInitialMemberProByUserProviderIdIn(List<String> memberIds);
 }

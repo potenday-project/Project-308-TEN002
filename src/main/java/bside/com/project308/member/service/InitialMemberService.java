@@ -54,12 +54,12 @@ public class InitialMemberService {
     }
 
     public List<MatchDto> initialMatch(Member createdMember) {
-        List<Member> initialMember = memberRepository.findInitialMemberByIdIn(List.of(1L, 2L, 3L, 4L));
+        List<Member> initialMember = memberRepository.findInitialMemberProByUserProviderIdIn(List.of("2958207040", "1"));
         List<MatchDto> matchDtos = initialMember.stream()
                                                    .map(member -> matchService.createMatch(member, createdMember)).toList();
 
         List<MessageRoomDto> messageRoomDtos = initialMember.stream().map(member -> messageRoomService.getMessageRoom(member.getId(), createdMember.getId())).toList();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < initialMember.size(); i++) {
             Long loginMemberId = initialMember.get(i).getId();
             Long messageRoomId = messageRoomDtos.get(i).id();
             String position = "";
@@ -74,7 +74,7 @@ public class InitialMemberService {
             messageRoomService.writeMessage(loginMemberId, messageRequest);
         }
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < initialMember.size(); i++) {
             Long loginMemberId = initialMember.get(i).getId();
             Long messageRoomId = messageRoomDtos.get(i).id();
             String message = "만나서 반가워요! :) 저는 테키 서비스를 만들고 있고 사람들을 연결해드리는 일을 하고 있어요.";

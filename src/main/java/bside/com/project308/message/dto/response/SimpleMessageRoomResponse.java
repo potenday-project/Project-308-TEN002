@@ -11,7 +11,7 @@ public record SimpleMessageRoomResponse(
         SimpleMemberInfo fromMember,
         SimpleMemberInfo toMember,
         LocalDateTime createdTime,
-        MessageResponse lastMessage,
+        SimpleMessageResponse lastMessage,
         boolean isNewMessageInRoom
 ) {
 
@@ -23,7 +23,7 @@ public record SimpleMessageRoomResponse(
                 new SimpleMemberInfo(fromMember.id(), fromMember.username(), fromMember.position(), fromMember.imgUrl()),
                 new SimpleMemberInfo(toMember.id(), toMember.username(), toMember.position(), toMember.imgUrl()),
                 messageRoomWithNewMessageCheck.createdTime(),
-                MessageResponse.from(messageRoomWithNewMessageCheck.lastMessage()),
+                SimpleMessageResponse.from(messageRoomWithNewMessageCheck.lastMessage()),
                 messageRoomWithNewMessageCheck.isNewMessageInRoom());
     }
 }

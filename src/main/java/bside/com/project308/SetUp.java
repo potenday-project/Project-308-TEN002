@@ -70,7 +70,7 @@ public class SetUp {
 
 
 
-                Member initialMember = Member.builder()
+                Member initialMemberSun = Member.builder()
                                       .userProviderId("1")
                                       .username("선종우")
                                       .password("ddd")
@@ -83,26 +83,47 @@ public class SetUp {
 
 
                 List<Skill> initialSelectedSkill = skills.stream()
-                                                  .filter(skill -> skill.getPosition() == initialMember.getPosition())
+                                                  .filter(skill -> skill.getPosition() == initialMemberSun.getPosition())
                                                   .sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
                                                   .toList().subList(0, 4);
 
-                List<SkillMember> initialSkillMemberTable = initialSelectedSkill.stream().map(skill -> SkillMember.of(skill, initialMember)).toList();
+                List<SkillMember> initialSkillMemberTable = initialSelectedSkill.stream().map(skill -> SkillMember.of(skill, initialMemberSun)).toList();
                 skillMembers.addAll(initialSkillMemberTable);
-                List<Interest> initailIterest = Arrays.asList(Interest.of("BACK_END", initialMember),
-                        Interest.of("FRONT_END", initialMember),
-                        Interest.of("DESIGNER", initialMember),
-                        Interest.of("PM_PO", initialMember)
+                List<Interest> initailIterest = Arrays.asList(Interest.of("BACK_END", initialMemberSun),
+                        Interest.of("FRONT_END", initialMemberSun),
+                        Interest.of("DESIGNER", initialMemberSun),
+                        Interest.of("PM_PO", initialMemberSun)
 
                 );
-                memberRepository.save(initialMember);
+                memberRepository.save(initialMemberSun);
                 interestRepository.saveAll(initailIterest);
                 skillMemberRepository.saveAll(skillMembers);
 
+                Member initialMemberJosh = Member.builder()
+                                                .userProviderId("2958207040")
+                                                .username("JOSH")
+                                                .password("ddd")
+                                                .registrationSource(RegistrationSource.KAKAO)
+                                                .position(Position.BACK_END)
+                                                .intro("안녕하세요! Techky팀의 디자이너입니다.")
+                                                .imgUrl("http://k.kakaocdn.net/dn/1Yl2a/btrs3Uj2P7b/KJ7KXQUNPma1FXdibktkQ0/img_640x640.jpg")
+                                                .build();
 
+                initialSelectedSkill = skills.stream()
+                                                         .filter(skill -> skill.getPosition() == initialMemberJosh.getPosition())
+                                                         .sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
+                                                         .toList().subList(0, 4);
 
+                initialSkillMemberTable = initialSelectedSkill.stream().map(skill -> SkillMember.of(skill, initialMemberJosh)).toList();
+                skillMembers.addAll(initialSkillMemberTable);
+                initailIterest = Arrays.asList(Interest.of("BACK_END", initialMemberJosh),
+                        Interest.of("FRONT_END", initialMemberJosh),
+                        Interest.of("DESIGNER", initialMemberJosh),
+                        Interest.of("PM_PO", initialMemberJosh));
 
-
+                memberRepository.save(initialMemberJosh);
+                interestRepository.saveAll(initailIterest);
+                skillMemberRepository.saveAll(skillMembers);
                 long start = 2000000000L;
                 long end = 3000000000L;
                 long range = end - start + 1;
@@ -136,7 +157,7 @@ public class SetUp {
                 skillMemberRepository.saveAll(skillMembers);
 
 
-                //1번 멤버는 모든 사람과 매칭됨
+/*                //1번 멤버는 모든 사람과 매칭됨
                 List<Match> matches = new ArrayList<>();
                 for (int i = 1; i < members.size(); i++) {
                     matchService.createMatch(members.get(0), members.get(i));
@@ -149,9 +170,9 @@ public class SetUp {
                     Visit visit = Visit.of(members.get(1), members.get(i), true);
                     visits1.add(visit);
 
-                }
+                }*/
 
-                visitRepository.saveAll(visits1);
+              //  visitRepository.saveAll(visits1);
 /*                List<Visit> visits2 = new ArrayList<>();
                 //3 ~ 4멤버는 자기보다 10번째 더 많은 사람까지 좋아요를 눌러놓음
                 for (int i = 3; i < 5; i++) {
