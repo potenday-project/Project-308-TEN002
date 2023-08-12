@@ -108,7 +108,7 @@ public class SetUp {
                 long range = end - start + 1;
                 Random generator = new Random();
 
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 10; i++) {
                     //long id = (long)(generator.nextDouble() * range + start);
                     Member member = Member.builder()
                                           .userProviderId(String.valueOf(1000 + i))
@@ -152,7 +152,7 @@ public class SetUp {
                 }
 
                 visitRepository.saveAll(visits1);
-                List<Visit> visits2 = new ArrayList<>();
+/*                List<Visit> visits2 = new ArrayList<>();
                 //3 ~ 4멤버는 자기보다 10번째 더 많은 사람까지 좋아요를 눌러놓음
                 for (int i = 3; i < 5; i++) {
                     for (int j = i + 1; j < i + 10; j++) {
@@ -161,7 +161,8 @@ public class SetUp {
                     }
                 }
 
-                visitRepository.saveAll(visits2);
+                visitRepository.saveAll(visits2);*/
+/*
 
                 Member customMember = Member.builder()
                                       .userProviderId("2947153334")
@@ -190,7 +191,7 @@ public class SetUp {
                 interestRepository.saveAll(customIterests);
                 skillMemberRepository.saveAll(skillMemberTable);
                 visitService.postLike(members.get(0).getId(), customMember.getId(), true);
-                IntStream.rangeClosed(1, 40)
+                IntStream.rangeClosed(1, 5)
                                  .forEach(i -> visitService.postLike(members.get(i).getId(), customMember.getId(), true));
 
 
@@ -222,11 +223,14 @@ public class SetUp {
                 Count customCount = Count.of(customMember);
                 countRepository.save(customCount);
                 customCount.changeMaxCount(1000);
+*/
+/*
 
 
                 for (int i = 10; i < members.size(); i++) {
                     visitService.postLike(members.get(i).getId(), customMember.getId(), true);
                 }
+*/
 
    /*             Member customMember2 = Member.builder()
                                             .userProviderId("2955591080")
@@ -279,7 +283,7 @@ public class SetUp {
                 Skill.of("다양한 부서와 협업 가능", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("문서 작성", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("피그마", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
-                Skill.of("\"SQL\"L", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
+                Skill.of("\"SQL\"", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("GA", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("PPT", Position.valueOf("PM_PO"), SkillCategory.FRAME_WORK),
                 Skill.of("UX리서치", Position.valueOf("DESIGNER"), SkillCategory.FRAME_WORK),
