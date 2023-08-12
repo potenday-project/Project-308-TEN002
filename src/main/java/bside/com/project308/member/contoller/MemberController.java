@@ -1,17 +1,14 @@
 package bside.com.project308.member.contoller;
 
-import bside.com.project308.SetUp;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.response.Response;
-import bside.com.project308.match.service.MatchService;
-import bside.com.project308.match.service.VisitService;
+import bside.com.project308.match.service.SwipeService;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.dto.response.ImgResponse;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.request.MemberUpdateRequest;
 import bside.com.project308.member.dto.request.SignUpRequest;
 import bside.com.project308.member.dto.response.MemberResponse;
-import bside.com.project308.member.entity.Member;
 import bside.com.project308.member.service.InitialMemberService;
 import bside.com.project308.member.service.MemberService;
 import bside.com.project308.member.service.SkillService;
@@ -33,7 +30,7 @@ import java.util.List;
 public class MemberController {
     private final MemberService memberService;
     private final SkillService skillService;
-    private final VisitService visitService;
+    private final SwipeService swipeService;
     private final InitialMemberService initialMemberService;
 
 /*    @GetMapping

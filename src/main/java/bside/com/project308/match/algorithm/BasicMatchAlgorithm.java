@@ -5,11 +5,10 @@ import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.match.entity.Match;
 import bside.com.project308.match.entity.TodayMatch;
-import bside.com.project308.match.entity.Visit;
-import bside.com.project308.match.entity.VisitedMemberCursor;
+import bside.com.project308.match.entity.Swipe;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.match.repository.TodayMatchRepository;
-import bside.com.project308.match.repository.VisitRepository;
+import bside.com.project308.match.repository.SwipeRepository;
 import bside.com.project308.match.repository.VisitedMemberCursorRepository;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.dto.MemberDto;
@@ -28,7 +27,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @Service
@@ -37,8 +35,7 @@ import java.util.stream.Stream;
 public class BasicMatchAlgorithm implements MatchAlgorithm {
     private final MemberRepository memberRepository;
     private final InterestRepository interestRepository;
-    private final VisitRepository visitRepository;
-    private final VisitedMemberCursorRepository visitedMemberCursorRepository;
+    private final SwipeRepository swipeRepository;
     private final MatchRepository matchRepository;
     private final MemberService memberService;
     private final CacheManager cacheManager;
@@ -58,14 +55,14 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
         //관심 position은 사람들 전부 가져옴, random함수도 생각했으나 native query를 사용해야 해서 현재는 이 방식
         Set<Member> allInterestingMember = memberRepository.findSetByPositionInAndIdNot(interestingPositions, memberId);
 
-        Set<Member> visitedMembers = visitRepository.findByFromMember(member).stream().map(Visit::getToMember).collect(Collectors.toSet());
+        Set<Member> swipedMembers = swipeRepository.findByFromMember(member).stream().map(Swipe::getToMember).collect(Collectors.toSet());
         Set<Member> matchedMembers = matchRepository.findByFromMember(member)
                                                     .stream()
                                                     .map(Match::getToMember)
                                                     .collect(Collectors.toSet());
 
         Set<MemberDto> allInterestingMemberDto = allInterestingMember.stream().map(MemberDto::from).collect(Collectors.toSet());
-        Set<MemberDto> visitedMemberDtos = visitedMembers.stream().map(MemberDto::from).collect(Collectors.toSet());
+        Set<MemberDto> visitedMemberDtos = swipedMembers.stream().map(MemberDto::from).collect(Collectors.toSet());
         Set<MemberDto> matchedMemberDtos = matchedMembers.stream().map(MemberDto::from).collect(Collectors.toSet());
 
         if (matchedMemberDtos.containsAll(allInterestingMemberDto)) {
@@ -78,7 +75,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
 
         if (visitedMemberDtos.containsAll(allInterestingMemberDto)) {
             log.debug("모든 사용자를 방문하여 매치를 초기화합니다.");
-            visitRepository.deleteByFromMember(member);
+            swipeRepository.deleteByFromMember(member);
             matchedMemberDtos = new HashSet<>();
         }
 
@@ -108,7 +105,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
 
         //todo: 한 바퀴 다 돈 경우에 대한 조치 필요
 /*
-        partnerCandidates.removeAll(visitedMembers);
+        partnerCandidates.removeAll(swipedMembers);
         partnerCandidates.removeAll(collect);
         List<Member> resultCandidate = partnerCandidates.stream().collect(Collectors.toList());
         resultCandidate.sort(Comparator.comparing(Member::getId));
@@ -143,7 +140,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
         //관심 position은 사람들 전부 가져옴, random함수도 생각했으나 native query를 사용해야 해서 현재는 이 방식
         Set<Member> allInterestingMember = memberRepository.findSetByPositionInAndIdNot(interestingPositions, memberId);
 
-        Set<Member> visitedMembers = visitRepository.findByFromMember(member).stream().map(Visit::getToMember).collect(Collectors.toSet());
+        Set<Member> visitedMembers = swipeRepository.findByFromMember(member).stream().map(Swipe::getToMember).collect(Collectors.toSet());
         Set<Member> matchedMembers = matchRepository.findByFromMember(member)
                                                     .stream()
                                                     .map(Match::getToMember)
@@ -157,7 +154,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
 
         if (visitedMembers.containsAll(allInterestingMember)) {
             log.debug("모든 사용자를 방문하여 매치를 초기화합니다.");
-            visitRepository.deleteByFromMember(member);
+            swipeRepository.deleteByFromMember(member);
             visitedMembers = new HashSet<>();
         }
 

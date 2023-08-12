@@ -1,13 +1,10 @@
 package bside.com.project308;
 
-import bside.com.project308.match.entity.Count;
-import bside.com.project308.match.entity.Match;
-import bside.com.project308.match.entity.Visit;
 import bside.com.project308.match.repository.CountRepository;
 import bside.com.project308.match.repository.MatchRepository;
-import bside.com.project308.match.repository.VisitRepository;
+import bside.com.project308.match.repository.SwipeRepository;
 import bside.com.project308.match.service.MatchService;
-import bside.com.project308.match.service.VisitService;
+import bside.com.project308.match.service.SwipeService;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.constant.RegistrationSource;
 import bside.com.project308.member.constant.SkillCategory;
@@ -19,8 +16,6 @@ import bside.com.project308.member.repository.InterestRepository;
 import bside.com.project308.member.repository.MemberRepository;
 import bside.com.project308.member.repository.SkillMemberRepository;
 import bside.com.project308.member.repository.SkillRepository;
-import bside.com.project308.message.dto.MessageRoomWithNewMessageCheck;
-import bside.com.project308.message.dto.request.MessageRequest;
 import bside.com.project308.message.service.MessageRoomService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +28,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -43,11 +37,11 @@ public class SetUp {
     private final SkillMemberRepository skillMemberRepository;
     private final SkillRepository skillRepository;
     private final InterestRepository interestRepository;
-    private final VisitRepository visitRepository;
+    private final SwipeRepository swipeRepository;
     private final MatchRepository matchRepository;
     private final PlatformTransactionManager txManager;
     private final MatchService matchService;
-    private final VisitService visitService;
+    private final SwipeService swipeService;
     private final MessageRoomService messageRoomService;
     private final CountRepository countRepository;
     public static List<Member> members = new ArrayList<>();
@@ -68,19 +62,23 @@ public class SetUp {
                 List<SkillMember> skillMembers = new ArrayList<>();
                 Position[] values = Position.values();
 
-
-
                 Member initialMemberSun = Member.builder()
-                                      .userProviderId("1")
-                                      .username("선종우")
-                                      .password("ddd")
-                                      .registrationSource(RegistrationSource.KAKAO)
-                                      .position(Position.BACK_END)
-                                      .intro("안녕하세요! Techky팀의 백엔드 엔지니어입니다")
-                                      .imgUrl("https://project-308.kro.kr/images/12.png")
-                                      .build();
+                                                .userProviderId("1")
+                                                .username("선종우")
+                                                .password("ddd")
+                                                .registrationSource(RegistrationSource.KAKAO)
+                                                .position(Position.BACK_END)
+                                                .intro("안녕하세요! Techky팀의 백엔드 엔지니어입니다")
+                                                .imgUrl("https://project-308.kro.kr/images/12.png")
+                                                .build();
 
 
+                List<Interest> initailIterest = Arrays.asList(Interest.of("BACK_END", initialMemberSun),
+                        Interest.of("FRONT_END", initialMemberSun),
+                        Interest.of("DESIGNER", initialMemberSun),
+                        Interest.of("PM_PO", initialMemberSun)
+
+                );
 
                 List<Skill> initialSelectedSkill = skills.stream()
                                                   .filter(skill -> skill.getPosition() == initialMemberSun.getPosition())
@@ -88,13 +86,11 @@ public class SetUp {
                                                   .toList().subList(0, 4);
 
                 List<SkillMember> initialSkillMemberTable = initialSelectedSkill.stream().map(skill -> SkillMember.of(skill, initialMemberSun)).toList();
-                skillMembers.addAll(initialSkillMemberTable);
-                List<Interest> initailIterest = Arrays.asList(Interest.of("BACK_END", initialMemberSun),
-                        Interest.of("FRONT_END", initialMemberSun),
-                        Interest.of("DESIGNER", initialMemberSun),
-                        Interest.of("PM_PO", initialMemberSun)
 
-                );
+
+
+                skillMembers.addAll(initialSkillMemberTable);
+
                 memberRepository.save(initialMemberSun);
                 interestRepository.saveAll(initailIterest);
                 skillMemberRepository.saveAll(skillMembers);

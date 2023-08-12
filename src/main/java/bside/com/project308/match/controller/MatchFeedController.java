@@ -10,25 +10,21 @@ import bside.com.project308.match.dto.response.MatchMemberResponse;
 import bside.com.project308.match.dto.response.MatchResponse;
 import bside.com.project308.match.service.CountService;
 import bside.com.project308.match.service.MatchService;
-import bside.com.project308.match.service.VisitService;
+import bside.com.project308.match.service.SwipeService;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.response.MemberResponse;
 import bside.com.project308.message.dto.MessageRoomDto;
 import bside.com.project308.message.service.MessageRoomService;
-import bside.com.project308.security.filter.CustomLoginFilter;
 import bside.com.project308.security.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RestController
@@ -36,7 +32,7 @@ import java.util.stream.Collectors;
 public class MatchFeedController {
 
     private final MatchService matchService;
-    private final VisitService visitService;
+    private final SwipeService swipeService;
     private final CountService countService;
     private final MessageRoomService messageRoomService;
 
@@ -87,7 +83,7 @@ public class MatchFeedController {
 
 
 
-        Optional<MatchDto> matchDto = visitService.postLike(userPrincipal.id(), matchRequest.toMemberId(), matchRequest.like());
+        Optional<MatchDto> matchDto = swipeService.postLike(userPrincipal.id(), matchRequest.toMemberId(), matchRequest.like());
 
         if (matchDto.isPresent()) {
             MessageRoomDto messageRoom = messageRoomService.getMessageRoom(matchDto.get().fromMember().id(), matchDto.get().toMember().id());

@@ -4,9 +4,9 @@ import bside.com.project308.common.config.CacheConfig;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.match.dto.MatchDto;
-import bside.com.project308.match.entity.Visit;
+import bside.com.project308.match.entity.Swipe;
 import bside.com.project308.match.repository.TodayMatchRepository;
-import bside.com.project308.match.repository.VisitRepository;
+import bside.com.project308.match.repository.SwipeRepository;
 import bside.com.project308.match.repository.VisitedMemberCursorRepository;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.entity.Member;
@@ -27,9 +27,9 @@ import java.util.Optional;
 @Service
 @Transactional
 @Slf4j
-public class VisitService {
+public class SwipeService {
 
-    private final VisitRepository visitRepository;
+    private final SwipeRepository swipeRepository;
     private final MemberRepository memberRepository;
     private final MatchService matchService;
     private final VisitedMemberCursorRepository visitedMemberCursorRepository;
@@ -44,7 +44,7 @@ public class VisitService {
 
         Member fromMember = memberRepository.findById(fromMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
         Member toMember = memberRepository.findById(toMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
-        evictVisitMember(fromMemberId, MemberDto.from(toMember));
+        evictSwipedMember(fromMemberId, MemberDto.from(toMember));
         todayMatchRepository.deleteByFromMemberAndToMember(fromMember, toMember);
 
 /*
@@ -57,23 +57,23 @@ public class VisitService {
 */
 
         //만약 like기록이 과거에 있던 경우 update
-        Visit visit = visitRepository.findByFromMemberAndToMember(fromMember, toMember).orElseGet(() -> Visit.of(fromMember, toMember, like));
+        Swipe visit = swipeRepository.findByFromMemberAndToMember(fromMember, toMember).orElseGet(() -> Swipe.of(fromMember, toMember, like));
         visit.updateLike(like);
-        visitRepository.save(visit);
+        swipeRepository.save(visit);
 
         MatchDto match = null;
         if (like) {
             // 상대방 visit table 검사
             // 상대방도 좋아요 눌렀으면 match table 생성
             //visittable은 삭제
-            Optional<Visit> isVisited = visitRepository.findByFromMemberAndToMember(toMember, fromMember);
+            Optional<Swipe> isVisited = swipeRepository.findByFromMemberAndToMember(toMember, fromMember);
             if (isVisited.isPresent() && isVisited.get().getIsLike()) {
 
                 match = matchService.createMatch(fromMember, toMember);
 
                 //todo: 양방향을 묶을 수 있는 로직이 필요
-                visitRepository.delete(isVisited.get());
-                visitRepository.delete(visit);
+                swipeRepository.delete(isVisited.get());
+                swipeRepository.delete(visit);
 
             }
         }
@@ -81,7 +81,7 @@ public class VisitService {
         return Optional.ofNullable(match);
     }
 
-    private void evictVisitMember(Long fromMemberId, MemberDto memberDto) {
+    private void evictSwipedMember(Long fromMemberId, MemberDto memberDto) {
         Cache matchPartnerCache = cacheManager.getCache(CacheConfig.CACHE_NAME_MATH_PARTNER);
         List<MemberDto> matchPartners = matchPartnerCache.get(fromMemberId, LinkedList.class);
 
