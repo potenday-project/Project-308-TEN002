@@ -113,10 +113,6 @@ public class CustomLoginFilter extends OncePerRequestFilter {
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
 
-
-
-
-
         HttpSession session = request.getSession();
         if(session.getAttribute("tempMemberDto") != null){
             session.removeAttribute("tempMemberDto");
