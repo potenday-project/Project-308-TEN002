@@ -22,4 +22,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     @EntityGraph(attributePaths = {"fromMember", "toMember"})
 
     Optional<Match> findByFromMemberIdAndId(Long fromMemberId, Long matchId);
+    @EntityGraph(attributePaths = {"toMember"})
+
+    Optional<Match> findByFromMemberIdAndIdAndToMemberId(Long fromMemberId, Long matchId, Long toMemberId);
 }
