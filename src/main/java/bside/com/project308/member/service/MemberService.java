@@ -1,5 +1,8 @@
 package bside.com.project308.member.service;
 
+import bside.com.project308.admin.Type;
+import bside.com.project308.admin.entity.UserLog;
+import bside.com.project308.admin.service.UserLogService;
 import bside.com.project308.common.config.CacheConfig;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.DuplicatedMemberException;
@@ -48,6 +51,7 @@ public class MemberService {
     private final InterestRepository interestRepository;
     private final CacheManager cacheManager;
     private final MatchRepository matchRepository;
+    private final UserLogService userLogService;
 
 
 
@@ -104,7 +108,7 @@ public class MemberService {
         List<Interest> interests = signUpRequest.interest().stream().map(interest -> Interest.of(interest, member)).toList();
         interestRepository.saveAll(interests);
 
-
+        userLogService.saveUserLog(member.getId(), Type.SIGN_UP);
         //todo: 양방향 연관관계 및 fetch join에 대해서는 고민, 데이터 뻥튀기 문제 있음
         return MemberDto.from(member,
                 interests.stream().map(InterestDto::from).toList(),
@@ -176,7 +180,9 @@ public class MemberService {
         }
 
         Member member = getMember(memberId);
+        userLogService.saveUserLog(member.getId(), Type.Withdrawal);
         memberRepository.delete(member);
+
     }
 
 

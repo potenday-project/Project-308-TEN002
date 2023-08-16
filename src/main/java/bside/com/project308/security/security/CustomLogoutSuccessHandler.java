@@ -35,8 +35,8 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
         //front 요청으로 모든 응답은 200으로
         response.setStatus(HttpStatus.OK.value());
 
-        Response errorResponse = Response.failResponse(ResponseCode.LOGOUT_SUCCESS.getCode(), ResponseCode.LOGOUT_SUCCESS.getDesc());
-        String body = objectMapper.writeValueAsString(errorResponse);
+        Response successResponse = Response.success(ResponseCode.LOGOUT_SUCCESS.getCode());
+        String body = objectMapper.writeValueAsString(successResponse);
         response.getWriter().println(body);
     }
 

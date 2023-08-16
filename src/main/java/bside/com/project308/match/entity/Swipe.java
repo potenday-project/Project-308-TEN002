@@ -14,10 +14,10 @@ import java.util.Objects;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class Visit extends BaseTimeEntity {
+public class Swipe extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "visit_id")
+    @Column(name = "swipe_id")
     private Long id;
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "from_member_id")
@@ -29,14 +29,14 @@ public class Visit extends BaseTimeEntity {
     private Member toMember;
     private Boolean isLike;
 
-    private Visit(Member fromMember, Member toMember, Boolean isLike) {
+    private Swipe(Member fromMember, Member toMember, Boolean isLike) {
         this.fromMember = fromMember;
         this.toMember = toMember;
         this.isLike = isLike;
     }
 
-    public static Visit of(Member fromMember, Member toMember, Boolean like) {
-        return new Visit(fromMember, toMember, like);
+    public static Swipe of(Member fromMember, Member toMember, Boolean like) {
+        return new Swipe(fromMember, toMember, like);
     }
 
     public void updateLike(Boolean like) {
@@ -47,7 +47,7 @@ public class Visit extends BaseTimeEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Visit visit = (Visit) o;
+        Swipe visit = (Swipe) o;
         return Objects.equals(id, visit.id);
     }
 

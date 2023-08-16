@@ -14,6 +14,8 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -31,10 +33,15 @@ public class Member extends BaseEntity {
     private Position position;
     @Enumerated(EnumType.STRING)
     private RegistrationSource registrationSource;
-    @Lob
+    @Column(columnDefinition = "text")
     private String intro;
     private String imgUrl;
     private LocalDateTime lastLogin;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
+    List<Interest> interests = new ArrayList<>();
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
+    List<SkillMember> skills = new ArrayList<>();
 
     @Builder
     public Member(String userProviderId, String username, String password, Position position, RegistrationSource registrationSource, String intro, String imgUrl) {
@@ -45,6 +52,20 @@ public class Member extends BaseEntity {
         this.registrationSource = registrationSource;
         this.intro = intro;
         this.imgUrl = imgUrl;
+    }
+
+    @Builder(builderMethodName = "fullBuild")
+    public Member(String userProviderId, String username, String password, Position position, RegistrationSource registrationSource,
+                  String intro, String imgUrl, List<Interest> interests, List<SkillMember> skills) {
+        this.userProviderId = userProviderId;
+        this.username = username;
+        this.password = password;
+        this.position = position;
+        this.registrationSource = registrationSource;
+        this.intro = intro;
+        this.imgUrl = imgUrl;
+        this.interests = interests;
+        this.skills = skills;
     }
 
     public void updateMember(String username, Position position, String intro, String imgUrl) {

@@ -6,6 +6,7 @@ import bside.com.project308.match.dto.MatchDto;
 import bside.com.project308.match.entity.Match;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.match.service.MatchService;
+import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.entity.Member;
 import bside.com.project308.member.repository.MemberRepository;
 import bside.com.project308.member.service.MemberService;
@@ -45,9 +46,20 @@ public class MessageRoomService {
     private final MatchRepository matchRepository;
     private final EntityManager em;
 
-    public void createMessageRoom(Member fromMember, Member toMember) {
-        MessageRoom newMessageRoom = MessageRoom.of(fromMember, toMember);
+    public void createMessageRoom(Member fromMember, Member toMember, Match createdMatch) {
+        MessageRoom newMessageRoom = MessageRoom.of(fromMember, toMember, createdMatch);
         messageRoomRepository.save(newMessageRoom);
+    }
+
+    public MessageRoomDto getMessageRoom(Long matchId) {
+
+        //Member fromMember = memberRepository.findById(fromMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        //Member toMember = memberRepository.findById(toMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        Match match = matchRepository.findById(matchId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
+        MessageRoom messageRoom = messageRoomRepository.findByMatch(match)
+                                                       .orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
+
+        return MessageRoomDto.from(messageRoom);
     }
 
     public MessageRoomDto getMessageRoom(Long fromMemberId, Long toMemberId) {
@@ -57,11 +69,6 @@ public class MessageRoomService {
 
         MessageRoom messageRoom = messageRoomRepository.findByFromMemberAndToMember(fromMember, toMember)
                                                        .orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
-
-
-        /*.orElseThrow(
-                () -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM)
-        );*/
 
         return MessageRoomDto.from(messageRoom);
     }
@@ -106,17 +113,13 @@ public class MessageRoomService {
 
     public MessageReadResponse getMessageInRoom(Long memberId, Long messageRoomId, Pageable pageable){
         MessageRoom messageRoom = messageRoomRepository.findById(messageRoomId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
-        MatchDto matchInfo = null;
-        if (messageRoom.getFromMember().getId() == memberId) {
-             matchInfo = getMatchInfo(messageRoom.getFromMember(), messageRoom.getToMember());
-        }else{
-            matchInfo = getMatchInfo(messageRoom.getToMember(), messageRoom.getFromMember());
-        }
+        MatchDto matchInfo = getMatchInfo(messageRoom.getFromMember(), messageRoom.getToMember());
+        MemberDto partner = matchInfo.fromMember().id() == memberId ? matchInfo.toMember() : matchInfo.fromMember();
 
 
         List<MessageDto> messageDtos = readAllMessageInRoom(memberId, messageRoomId, pageable);
         List<MessageResponse> messageResponses = messageDtos.stream().map(MessageResponse::from).toList();
-        return new MessageReadResponse(memberId, matchInfo.id(), messageResponses);
+        return new MessageReadResponse(memberId, partner.username(), partner.id(), matchInfo.id(), messageResponses);
     }
 
     private MatchDto getMatchInfo(Member fromMember, Member toMember) {

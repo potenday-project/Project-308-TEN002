@@ -5,11 +5,10 @@ import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.match.entity.Match;
 import bside.com.project308.match.entity.TodayMatch;
-import bside.com.project308.match.entity.Visit;
-import bside.com.project308.match.entity.VisitedMemberCursor;
+import bside.com.project308.match.entity.Swipe;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.match.repository.TodayMatchRepository;
-import bside.com.project308.match.repository.VisitRepository;
+import bside.com.project308.match.repository.SwipeRepository;
 import bside.com.project308.match.repository.VisitedMemberCursorRepository;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.dto.MemberDto;
@@ -20,6 +19,7 @@ import bside.com.project308.member.repository.MemberRepository;
 import bside.com.project308.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @Service
@@ -37,8 +36,7 @@ import java.util.stream.Stream;
 public class BasicMatchAlgorithm implements MatchAlgorithm {
     private final MemberRepository memberRepository;
     private final InterestRepository interestRepository;
-    private final VisitRepository visitRepository;
-    private final VisitedMemberCursorRepository visitedMemberCursorRepository;
+    private final SwipeRepository swipeRepository;
     private final MatchRepository matchRepository;
     private final MemberService memberService;
     private final CacheManager cacheManager;
@@ -58,17 +56,18 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
         //관심 position은 사람들 전부 가져옴, random함수도 생각했으나 native query를 사용해야 해서 현재는 이 방식
         Set<Member> allInterestingMember = memberRepository.findSetByPositionInAndIdNot(interestingPositions, memberId);
 
-        Set<Member> visitedMembers = visitRepository.findByFromMember(member).stream().map(Visit::getToMember).collect(Collectors.toSet());
-        Set<Member> matchedMembers = matchRepository.findByFromMember(member)
+        Set<Member> swipedMembers = swipeRepository.findByFromMember(member).stream().map(Swipe::getToMember).collect(Collectors.toSet());
+        Set<Member> matchedMembers = matchRepository.findByFromMemberOrToMember(member, member)
                                                     .stream()
-                                                    .map(Match::getToMember)
+                                                    .map(match -> match.getOtherMember(member))
                                                     .collect(Collectors.toSet());
 
         Set<MemberDto> allInterestingMemberDto = allInterestingMember.stream().map(MemberDto::from).collect(Collectors.toSet());
-        Set<MemberDto> visitedMemberDtos = visitedMembers.stream().map(MemberDto::from).collect(Collectors.toSet());
+        Set<MemberDto> visitedMemberDtos = swipedMembers.stream().map(MemberDto::from).collect(Collectors.toSet());
         Set<MemberDto> matchedMemberDtos = matchedMembers.stream().map(MemberDto::from).collect(Collectors.toSet());
 
         if (matchedMemberDtos.containsAll(allInterestingMemberDto)) {
+            log.info("getMatchPartner {}", "이상 접근");
             throw new ResourceNotFoundException(ResponseCode.NO_MORE_PARTNER, ResponseCode.NO_MORE_PARTNER.getDesc());
         }
 
@@ -78,11 +77,18 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
 
         if (visitedMemberDtos.containsAll(allInterestingMemberDto)) {
             log.debug("모든 사용자를 방문하여 매치를 초기화합니다.");
-            visitRepository.deleteByFromMember(member);
+            swipeRepository.deleteByFromMember(member);
             matchedMemberDtos = new HashSet<>();
         }
 
         allInterestingMemberDto.removeAll(matchedMemberDtos);
+
+        Set<String> initialMemberId = new HashSet<String>(Arrays.asList("2958207482", "2958207040", "2947153334", "2955591080"));
+        List<Member> initialMember = memberRepository.findInitialMemberProByUserProviderIdIn(initialMemberId);
+        Set<Member> initialMemberset = new HashSet<>(initialMember);
+        initialMemberset.retainAll(allInterestingMember);
+
+
         List<MemberDto> memberDtos = allInterestingMemberDto.stream().collect(Collectors.toList());
 
         //데이터가 많으면 굳이 전체 데이터를 shuffle할 필요는 없음
@@ -108,7 +114,7 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
 
         //todo: 한 바퀴 다 돈 경우에 대한 조치 필요
 /*
-        partnerCandidates.removeAll(visitedMembers);
+        partnerCandidates.removeAll(swipedMembers);
         partnerCandidates.removeAll(collect);
         List<Member> resultCandidate = partnerCandidates.stream().collect(Collectors.toList());
         resultCandidate.sort(Comparator.comparing(Member::getId));
@@ -122,7 +128,6 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
     @Override
     @Cacheable(value = CacheConfig.CACHE_NAME_MATH_PARTNER, key = "#memberId")
     public LinkedList<MemberDto> getTodayMatchPartner(Long memberId) {
-
 
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
 
@@ -142,48 +147,74 @@ public class BasicMatchAlgorithm implements MatchAlgorithm {
 
         //관심 position은 사람들 전부 가져옴, random함수도 생각했으나 native query를 사용해야 해서 현재는 이 방식
         Set<Member> allInterestingMember = memberRepository.findSetByPositionInAndIdNot(interestingPositions, memberId);
-
-        Set<Member> visitedMembers = visitRepository.findByFromMember(member).stream().map(Visit::getToMember).collect(Collectors.toSet());
-        Set<Member> matchedMembers = matchRepository.findByFromMember(member)
+        Set<Member> visitedMembers = swipeRepository.findByFromMember(member).stream().map(Swipe::getToMember).collect(Collectors.toSet());
+        Set<Member> matchedMembers = matchRepository.findByFromMemberOrToMember(member, member)
                                                     .stream()
-                                                    .map(Match::getToMember)
+                                                    .map(match -> match.getOtherMember(member))
                                                     .collect(Collectors.toSet());
 
+        Set<String> teckyMemberId = new HashSet<String>(Arrays.asList("2958207482", "2958207040", "2947153334", "2955591080"));
+        List<Member> teckyMember = memberRepository.findInitialMemberProByUserProviderIdIn(teckyMemberId);
+        Set<Member> teckyMemberSet = new HashSet<>(teckyMember);
+
+
         allInterestingMember.removeAll(matchedMembers);
+
+        Set<Member> copyA = new HashSet<>();
+        copyA.addAll(visitedMembers);
+
+        copyA.addAll(teckyMemberSet);
+
         if (allInterestingMember.isEmpty()) {
+            log.error("매치 가능 사용자가 없습니다.");
             throw new ResourceNotFoundException(ResponseCode.NO_MORE_PARTNER, ResponseCode.NO_MORE_PARTNER.getDesc());
         }
 
 
-        if (visitedMembers.containsAll(allInterestingMember)) {
+        if (copyA.containsAll(allInterestingMember)) {
             log.debug("모든 사용자를 방문하여 매치를 초기화합니다.");
-            visitRepository.deleteByFromMember(member);
+            swipeRepository.deleteByFromMember(member);
             visitedMembers = new HashSet<>();
         }
 
         allInterestingMember.removeAll(visitedMembers);
 
+        teckyMemberSet.retainAll(allInterestingMember);
 
 
-        List<Member> members = allInterestingMember.stream().collect(Collectors.toList());
+        allInterestingMember.removeAll(teckyMemberSet);
+
+
+        List<Member> memberWithoutTecky = allInterestingMember.stream().collect(Collectors.toList());
+
 
         //데이터가 많으면 굳이 전체 데이터를 shuffle할 필요는 없음
-        if (members.size() >= 50) {
-            members = members.subList(0, 50);
+        if (memberWithoutTecky.size() >= 50) {
+            memberWithoutTecky = memberWithoutTecky.subList(0, 50);
         }
-        Collections.shuffle(members);
-        if (CollectionUtils.isEmpty(members)) {
+
+        teckyMember = new ArrayList<>(teckyMemberSet);
+
+
+        Collections.shuffle(memberWithoutTecky);
+        if (CollectionUtils.isEmpty(memberWithoutTecky)) {
             throw new ResourceNotFoundException(ResponseCode.NO_MORE_PARTNER, ResponseCode.NO_MORE_PARTNER.getDesc());
         }
-        if (members.size() >= 10) {
-            members = members.subList(0, 5);
+
+        teckyMember.addAll(memberWithoutTecky);
+
+        List<Member> finalMemberList = teckyMember;
+
+        if (finalMemberList.size() >= 10) {
+            finalMemberList = finalMemberList.subList(0, 5);
         }
 
-        todayMatches = members.stream().map(toMember -> TodayMatch.of(member, toMember)).toList();
+        todayMatches = finalMemberList.stream().map(toMember -> TodayMatch.of(member, toMember)).toList();
         todayMatchRepository.saveAll(todayMatches);
 
+        //todo: 쿼리 성능개선 필요 N+1
 
-        LinkedList<MemberDto> todayList = members.stream()
+        LinkedList<MemberDto> todayList = finalMemberList.stream()
                   .map(matchTarget-> memberService.getMemberInfo(matchTarget.getId()))
                   .collect(Collectors.toCollection(LinkedList::new));
 

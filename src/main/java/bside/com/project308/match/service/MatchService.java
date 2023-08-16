@@ -40,6 +40,7 @@ public class MatchService {
         Member toMember = memberRepository.findById(toMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
 
         Match match = matchRepository.findByFromMemberAndToMember(fromMember, toMember).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
+
         return MatchDto.from(match);
     }
 
@@ -57,44 +58,41 @@ public class MatchService {
                  }
          );
 
-        Match newMatch1 = Match.of(fromMember, toMember);
-        Match newMatch2 = Match.of(toMember, fromMember);
+        Match newMatch = Match.of(fromMember, toMember);
+        matchRepository.save(newMatch);
 
-        matchRepository.save(newMatch1);
-        matchRepository.save(newMatch2);
-        newMatch1.connectMatch(newMatch2);
 
-        messageRoomService.createMessageRoom(fromMember, toMember);
+        messageRoomService.createMessageRoom(fromMember, toMember, newMatch);
         //todo: 양방향을 묶을 수 있는 로직이 필요
-        return MatchDto.from(newMatch1);
+        return MatchDto.from(newMatch);
     }
 
     public List<MatchDto> getUncheckedMatchList(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
-        List<Match> matches = matchRepository.findByFromMemberAndCheckedFalse(member);
+        List<Match> matches = matchRepository.findByFromMemberOrToMemberAndCheckedFalse(member, member);
         return matches.stream().map(MatchDto::from).toList();
     }
 
     public List<MatchDto> getAllMatchList(Long fromMemberId) {
         Member member = memberRepository.findById(fromMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
-        List<Match> matches = matchRepository.findByFromMemberOrderByMatchTimeDesc(member);
+        List<Match> matches = matchRepository.findByFromMemberOrToMemberOrderByMatchTimeDesc(member, member);
         return matches.stream().map(MatchDto::from).toList();
     }
 
     public void deleteMatch(Long fromMemberId, Long matchId) {
-        Match match = matchRepository.findByFromMemberIdAndId(fromMemberId, matchId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
-        messageRoomService.deleteMessageRoom(match.getFromMember(), match.getToMember());
-        matchRepository.deleteByFromMemberIdAndId(fromMemberId, matchId);
-
-        //todo: 양방향을 묶을 수 있는 로직이 필요
-
+        Match match = matchRepository.findById(matchId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
+        if (match.getFromMember().getId() != fromMemberId && match.getToMember().getId() != fromMemberId) {
+            throw new UnAuthorizedAccessException(ResponseCode.NOT_AUTHORIZED);
+        }
+        //messageRoomService.deleteMessageRoom(match.getFromMember(), match.getToMember());
+        matchRepository.delete(match);
     }
 
     public void checkMatch(Long memberId, Long matchId) {
         Match match = matchRepository.findById(matchId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
 
         //getId는 proxy객체에 대한 select를 수행하지 않는다.
-        if (match.getFromMember().getId() != memberId) {
+        if (match.getFromMember().getId() != memberId && match.getToMember().getId() != memberId) {
             throw new UnAuthorizedAccessException(ResponseCode.NOT_AUTHORIZED);
         }
 
@@ -113,8 +111,8 @@ public class MatchService {
         }
 
 
-        Member toMember = fromMemberId == match.getFromMember().getId() ? match.getToMember() : match.getFromMember();
-        return memberService.getMemberInfo(toMember.getId());
+        Long matchedMemberId = fromMemberId == match.getFromMember().getId() ? match.getToMember().getId() : match.getFromMember().getId();
+        return memberService.getMemberInfo(matchedMemberId);
     }
 
 
