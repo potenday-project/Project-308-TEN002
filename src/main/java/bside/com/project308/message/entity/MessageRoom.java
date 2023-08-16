@@ -32,6 +32,11 @@ public class MessageRoom extends BaseTimeEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Member toMember;
 
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "match_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Match match;
+
     //match되지 않았는데 messaging을 할 여지가 있을까?
     //private Match match;
     @OneToOne(fetch = FetchType.LAZY)
@@ -39,15 +44,16 @@ public class MessageRoom extends BaseTimeEntity {
     private Message lastMessage;
     private LocalDateTime createdTime;
 
-    private MessageRoom(Member fromMember, Member toMember) {
+    private MessageRoom(Member fromMember, Member toMember, Match match) {
         this.fromMember = fromMember;
         this.toMember = toMember;
         this.createdTime = LocalDateTime.now();
+        this.match = match;
         this.lastMessage = null;
     }
 
-    public static MessageRoom of(Member fromMember, Member toMember) {
-        return new MessageRoom(fromMember, toMember);
+    public static MessageRoom of(Member fromMember, Member toMember, Match match) {
+        return new MessageRoom(fromMember, toMember, match);
     }
 
     public void updateLastMessage(Message lastMessage) {

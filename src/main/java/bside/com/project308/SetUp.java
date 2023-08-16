@@ -19,6 +19,7 @@ import bside.com.project308.member.repository.SkillRepository;
 import bside.com.project308.message.service.MessageRoomService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -31,6 +32,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "spring.config.activate", name = "on-profile", havingValue = "local")
+
 public class SetUp {
 
     private final MemberRepository memberRepository;
@@ -64,12 +67,12 @@ public class SetUp {
 
                 Member initialMemberSun = Member.builder()
                                                 .userProviderId("1")
-                                                .username("선종우")
+                                                .username("tecky")
                                                 .password("ddd")
                                                 .registrationSource(RegistrationSource.KAKAO)
                                                 .position(Position.BACK_END)
-                                                .intro("안녕하세요! Techky팀의 백엔드 엔지니어입니다")
-                                                .imgUrl("https://project-308.kro.kr/images/12.png")
+                                                .intro("안녕하세요! 저희는 tecky 팀입니다.")
+                                                .imgUrl("https://project-308.kro.kr/images/logo.png")
                                                 .build();
 
 
@@ -89,13 +92,11 @@ public class SetUp {
 
 
 
-                skillMembers.addAll(initialSkillMemberTable);
-
                 memberRepository.save(initialMemberSun);
                 interestRepository.saveAll(initailIterest);
-                skillMemberRepository.saveAll(skillMembers);
+                skillMemberRepository.saveAll(initialSkillMemberTable);
 
-                Member initialMemberJosh = Member.builder()
+ /*               Member initialMemberJosh = Member.builder()
                                                 .userProviderId("2958207040")
                                                 .username("JOSH")
                                                 .password("ddd")
@@ -119,11 +120,78 @@ public class SetUp {
 
                 memberRepository.save(initialMemberJosh);
                 interestRepository.saveAll(initailIterest);
-                skillMemberRepository.saveAll(skillMembers);
+                skillMemberRepository.saveAll(skillMembers);*/
                 long start = 2000000000L;
                 long end = 3000000000L;
                 long range = end - start + 1;
                 Random generator = new Random();
+
+                String intro1 = """
+                        안녕하세요! 저는 백엔드 개발자 재경입니다. 
+                        웹 및 앱 서비스를 만드는 것을 좋아하며, 안정적이고 확장 가능한 서버 측 시스템을 구축하는 것에 흥미를 느낍니다. 
+                        다양한 프로그래밍 언어와 기술에 능숙하게 다룰 수 있으며, 데이터베이스 설계와 최적화에도 높은 관심을 가지고 있습니다. 
+                        프로젝트를 완성하기 위해 끊임없이 학습하고, 최고의 결과물을 제공하기 위해 노력합니다. 
+                        백엔드 개발을 통해 사용자들에게 편의와 가치를 제공하는데 기여하고 싶습니다. 
+                        새로운 도전과 성장을 위해 항상 준비하고 있으며, 프로페셔널한 개발자로서 끊임없이 발전하고 싶습니다. 
+                        함께 일하면 더 나은 미래를 만들 수 있다고 믿습니다!""";
+
+                String intro2 = """
+                        3년차 디자이너입니다. 
+                        사용자 경험을 개선하는 것에 열정을 가지고 있습니다. 
+                        다양한 디자인 분야에서 경험을 쌓았으며, 웹 디자인, 그래픽 디자인, UI/UX 디자인 등 다양한 영역에 능숙합니다. 
+                        디자인 프로세스에 대한 깊은 이해와 문제 해결 능력을 가지고 있어, 프로젝트를 성공적으로 완료하는 데 최선을 다하고 있습니다.
+                        팀에서 협업하며 아이디어를 공유하고 실현하는 것을 즐깁니다. 
+                        
+                        언제든 가볍게 좋아요 눌러주세요~ 
+                        """;
+
+                String intro3 = """
+                        취업 준비생 Lucy라고 합니다 
+                        사용자들이 편리하게 이용할 수 있는 인터페이스를 만들고 싶습니다. 
+                        다양한 프론트엔드 기술과 도구를 활용하여 직관적이고 반응형 웹사이트를 개발하는 데 자신감을 가지고 있습니다.
+                        HTML, CSS, JavaScript를 다루는 데 능숙하며, 최신 프론트엔드 프레임워크와 라이브러리에도 관심을 가지고 공부하고 있습니다. 
+                        사용자 경험을 최적화하기 위해 UX/UI 디자인과 웹 접근성을 고려하며 작업하고, 효율적인 코드 작성과 모범 사례를 따르려고 노력해요                        
+                        tecky를 통해 같이 사이드프로젝트를 진행할 백엔드 엔지니어를 찾고 있어요 
+                        """;
+
+                String intro4 = """
+                        안녕하세요! 기획 2년차 유나입니다.
+                        제품 개발과 관련된 경험을 통해 사용자의 니즈를 이해하고 그에 맞는 제품을 설계하고 개선해왔습니다. 
+                        고객과 사용자의 요구사항을 수집하고 우선순위를 결정하는 과정에서는 뛰어난 커뮤니케이션과 문제 해결 능력이 필요합니다. 저는 이러한 능력을 가지고 있으며, 효율적인 제품 개발을 위해 팀과 함께 일하는 것을 즐깁니다.
+                        프로젝트 매니징은 계획, 일정 관리, 리스크 관리 등 다양한 측면을 다루어야 합니다. 제가 수행한 프로젝트들은 예산 내에서 성공적으로 완료되었으며, 이를 위해 프로젝트 팀 간의 협업과 의사결정 능력을 활용했습니다.
+                        끊임없이 변화하는 환경에서도 조직을 효과적으로 이끄는 능력을 가지고 있습니다. 변화에 빠르게 적응하고, 프로젝트의 목표를 이루기 위해 노력합니다. 사용자 중심의 제품을 개발하고, 팀의 역량을 최대한 발휘하며 팀원들이 동기부여를 느낄 수 있도록 지원합니다.
+                        새로운 도전을 좋아하며 지식을 끊임없이 갱신하고 발전하는 것을 목표로 삼고 있습니다. 프로젝트와 제품 개발의 성공을 위해 열정적으로 노력하고, 팀원과 협업하여 더 큰 가치를 창출하는 것이 제 목표입니다.
+                        """;
+                List<String> intros = Arrays.asList(new String[]{intro1, intro2, intro3, intro4});
+                List<String> names = Arrays.asList(new String[]{"재경", "Paul", "Lucy", "유나"});
+                for (int i = 0; i < 4; i++) {
+                    Member member = Member.builder()
+                                          .userProviderId(String.valueOf(1000 + i))
+                                          .username(names.get(i))
+                                          .password("ddd")
+                                          .registrationSource(RegistrationSource.KAKAO)
+                                          .position(values[i])
+                                          .intro(intros.get(i))
+                                          .imgUrl("https://project-308.kro.kr/images/" + (i + 1)+ ".png")
+                                          .build();
+                    interests.addAll(Arrays.asList(new Interest[]{Interest.of(values[i].toString(), member), Interest.of(values[(i + 2) % 4].toString(), member)}));
+
+                    members.add(member);
+                    List<Skill> selectedSkill = skills.stream()
+                                                      .filter(skill -> skill.getPosition() == member.getPosition())
+                                                      .sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
+                                                      .toList().subList(0, 4);
+                    List<SkillMember> skillMemberTable = selectedSkill.stream().map(skill -> SkillMember.of(skill, member)).toList();
+
+                    skillMembers.addAll(skillMemberTable);
+
+
+                }
+                memberRepository.saveAll(members);
+                interestRepository.saveAll(interests);
+                skillMemberRepository.saveAll(skillMembers);
+
+/*
 
                 for (int i = 0; i < 10; i++) {
                     //long id = (long)(generator.nextDouble() * range + start);
@@ -133,8 +201,8 @@ public class SetUp {
                                           .password("ddd")
                                           .registrationSource(RegistrationSource.KAKAO)
                                           .position(values[i % 4])
-                                          .intro("안녕하세요")
-                                          .imgUrl("https://i.pravatar.cc/150?u=fake@pravatar.com")
+                                          .intro()
+                                          .imgUrl("https://project-308.kro.kr/images/" + i + ".png")
                                           .build();
                     members.add(member);
                     interests.addAll(Arrays.asList(new Interest[]{Interest.of(values[(i + 1) % 4].toString(), member), Interest.of(values[(i + 2) % 4].toString(), member)}));
@@ -151,6 +219,7 @@ public class SetUp {
                 memberRepository.saveAll(members);
                 interestRepository.saveAll(interests);
                 skillMemberRepository.saveAll(skillMembers);
+*/
 
 
 /*                //1번 멤버는 모든 사람과 매칭됨

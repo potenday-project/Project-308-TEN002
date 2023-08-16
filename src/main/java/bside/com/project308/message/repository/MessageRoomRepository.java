@@ -1,7 +1,9 @@
 package bside.com.project308.message.repository;
 
+import bside.com.project308.match.entity.Match;
 import bside.com.project308.member.entity.Member;
 import bside.com.project308.message.entity.MessageRoom;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,10 @@ public interface MessageRoomRepository extends JpaRepository<MessageRoom, Long> 
             "or (mr.fromMember = :toMember and mr.toMember = :fromMember)")
     Optional<MessageRoom> findByFromMemberAndToMember(@Param("fromMember") Member fromMember, @Param("toMember") Member toMember);
     List<MessageRoom> findByFromMemberOrToMember(Member fromMember, Member toMember);
+
+    @EntityGraph(attributePaths = {"fromMember", "toMember"})
+    Optional<MessageRoom> findByMatch(Match match);
+    
 
     void deleteByFromMemberAndToMember(Member fromMember, Member toMember);
 }
