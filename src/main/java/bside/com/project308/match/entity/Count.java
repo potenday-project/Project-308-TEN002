@@ -30,7 +30,7 @@ public class Count extends BaseTimeEntity {
     private Boolean exhausted;
 
     private Count(Member member, Integer curCount, Boolean exhausted) {
-        this.maxCount = 1000;
+        this.maxCount = 100;
         this.member = member;
         this.curCount = curCount;
         this.exhausted = exhausted;
@@ -46,7 +46,7 @@ public class Count extends BaseTimeEntity {
     public Integer useMatch() {
         Assert.state(!this.exhausted, "모든 매치 횟수를 소진하였습니다.");
         this.curCount++;
-        if (curCount == this.maxCount) {
+        if (curCount > this.maxCount) {
             this.exhausted = true;
         }
         return this.curCount;

@@ -5,6 +5,7 @@ import bside.com.project308.common.exception.DuplicatedMemberException;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.match.dto.MatchDto;
 import bside.com.project308.match.service.MatchService;
+import bside.com.project308.match.service.SwipeService;
 import bside.com.project308.member.dto.InterestDto;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.SkillDto;
@@ -25,9 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Service
@@ -40,6 +39,7 @@ public class InitialMemberService {
     private final MemberService memberService;
     private final MessageRoomService messageRoomService;
     private final MessageRoomRepository messageRoomRepository;
+    private final SwipeService swipeService;
 
 
     public MemberDto singUp(SignUpRequest signUpRequest) {
@@ -54,7 +54,16 @@ public class InitialMemberService {
     }
 
     public List<MatchDto> initialMatch(Member createdMember) {
-        List<Member> initialMember = memberRepository.findInitialMemberProByUserProviderIdIn(List.of("2958207040", "1"));
+        MatchDto match = defaultTeckyMessage(createdMember);
+        Set<String> initialMemberId = new HashSet<String>(Arrays.asList("2958207482", "2958207040", "2947153334", "2955591080"));
+        if(!initialMemberId.contains(createdMember.getUserProviderId())){
+            List<Member> initialMember = memberRepository.findInitialMemberProByUserProviderIdIn(initialMemberId);
+            initialMember.stream().forEach(member -> swipeService.postLike(member.getId(), createdMember.getId(), true));
+        }
+
+
+      /*  List<Member> initialMember = memberRepository.findInitialMemberProByUserProviderIdIn(List.of("2958207040", "1"));
+
         List<MatchDto> matchDtos = initialMember.stream()
                                                    .map(member -> matchService.createMatch(member, createdMember)).toList();
 
@@ -80,9 +89,28 @@ public class InitialMemberService {
             String message = "만나서 반가워요! :) 저는 테키 서비스를 만들고 있고 사람들을 연결해드리는 일을 하고 있어요.";
             MessageRequest messageRequest = new MessageRequest(messageRoomId, message);
             messageRoomService.writeMessage(loginMemberId, messageRequest);
-        }
+        }*/
 
-        return matchDtos;
+        return List.of(match);
+    }
+
+    private MatchDto defaultTeckyMessage(Member createdMember) {
+        Member tecky = memberRepository.findByUserProviderId("1").orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+        MatchDto match = matchService.createMatch(tecky, createdMember);
+
+        MessageRoomDto messageRoom = messageRoomService.getMessageRoom(tecky.getId(), createdMember.getId());
+        String message = "만나서 반가워요! :) 저희는 창업 팀매칭을 지원하는 tecky팀입니다!";
+        MessageRequest messageRequest = new MessageRequest(messageRoom.id(), message);
+        messageRoomService.writeMessage(tecky.getId(), messageRequest);
+
+        message = "나와 핏이 맞을 것 같은 사람을 찾으셨다면 오른쪽으로 스와이프 해보세요";
+        messageRequest = new MessageRequest(messageRoom.id(), message);
+        messageRoomService.writeMessage(tecky.getId(), messageRequest);
+
+        message = "새로운 만남이 성사될 거에요!";
+        messageRequest = new MessageRequest(messageRoom.id(), message);
+        messageRoomService.writeMessage(tecky.getId(), messageRequest);
+        return match;
     }
 
 

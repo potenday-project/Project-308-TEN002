@@ -36,16 +36,12 @@ public class MatchFeedController {
     private final CountService countService;
     private final MessageRoomService messageRoomService;
 
-    @GetMapping("/feed")
+    /*@GetMapping("/feed")
     public ResponseEntity<Response> getMatchPartner(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        /*
-        1. userPrincipal로 검색하면 match상대방이 한 명 나옴
-        * */
-
         MemberDto matchPartner = matchService.getMatchPartner(userPrincipal.id());
         return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), MemberResponse.from(matchPartner)));
 
-    }
+    }*/
 
     @GetMapping("/today-list")
     public ResponseEntity<Response> getMatchTodayPartner(@AuthenticationPrincipal UserPrincipal userPrincipal) {
@@ -86,7 +82,7 @@ public class MatchFeedController {
         Optional<MatchDto> matchDto = swipeService.postLike(userPrincipal.id(), matchRequest.toMemberId(), matchRequest.like());
 
         if (matchDto.isPresent()) {
-            MessageRoomDto messageRoom = messageRoomService.getMessageRoom(matchDto.get().fromMember().id(), matchDto.get().toMember().id());
+            MessageRoomDto messageRoom = messageRoomService.getMessageRoom(matchDto.get().id());
             MatchResponse matchResponse = MatchResponse.from(matchDto.get());
             return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.LIKE_POST_SUCCESS.getCode(), new LikeResponse(usedCount, true, matchResponse, messageRoom.id())));
         } else {
