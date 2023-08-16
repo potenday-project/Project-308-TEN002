@@ -36,7 +36,7 @@ import java.util.Arrays;
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -46,6 +46,7 @@ public class SecurityConfig {
     private final CustomJwtLoginFilter customJwtLoginFilter;
     private final CacheManager cacheManager;
     @Bean
+    @ConditionalOnProperty(prefix = "spring.config.activate", name = "on-profile", havingValue = "local")
     public SecurityFilterChain localFilterChain(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity.csrf(csrfConfigurer -> csrfConfigurer.disable());

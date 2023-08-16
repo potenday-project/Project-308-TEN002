@@ -75,12 +75,12 @@ public class CustomLoginFilter extends OncePerRequestFilter {
             return;
         }
         String body = StreamUtils.copyToString(request.getInputStream(), StandardCharset.UTF_8);
-        log.info("login request body to /login : {}", body);
+        log.debug("login request body to /login : {}", body);
         MemberLoginRequest memberLoginRequest =null;
 
         try {
             memberLoginRequest = objectMapper.readValue(body, MemberLoginRequest.class);
-            log.info("login request object to /login : {}", memberLoginRequest);
+            log.debug("login request object to /login : {}", memberLoginRequest);
             requestValidationCheck(memberLoginRequest);
             MemberDto memberDto = memberService.getByUserProviderId(memberLoginRequest.user().providerUserId);
             UserPrincipal userPrincipal = UserPrincipal.of(memberDto.id(), memberDto.userProviderId(), memberDto.username(), memberDto.password(), null);
@@ -117,7 +117,7 @@ public class CustomLoginFilter extends OncePerRequestFilter {
         if(session.getAttribute("tempMemberDto") != null){
             session.removeAttribute("tempMemberDto");
         }
-        log.info("[{}]{} logged in at {}", ((UserPrincipal) authResult.getPrincipal()).id(), ((UserPrincipal) authResult.getPrincipal()).getUsername(), LocalDateTime.now());
+        log.debug("[{}]{} logged in at {}", ((UserPrincipal) authResult.getPrincipal()).id(), ((UserPrincipal) authResult.getPrincipal()).getUsername(), LocalDateTime.now());
 
         SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authResult);

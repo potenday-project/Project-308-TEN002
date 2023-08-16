@@ -32,7 +32,7 @@ public class CustomJwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = request.getHeader(HttpHeaders.AUTHORIZATION);
-
+        log.debug("token request : {}", token);
         if (!StringUtils.hasLength(token) || !token.startsWith(JwtTokenProvider.HEADER_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
@@ -47,8 +47,8 @@ public class CustomJwtAuthorizationFilter extends OncePerRequestFilter {
             context.setAuthentication(authentication);
             SecurityContextHolder.getContextHolderStrategy().setContext(context);
 
-            log.info("information : {}", authentication);
-            log.info("authenticated");
+            log.debug("information : {}", authentication);
+            log.debug("authenticated");
         }
 
         filterChain.doFilter(request, response);
