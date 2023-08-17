@@ -1,5 +1,6 @@
 package bside.com.project308.message.dto;
 
+import bside.com.project308.match.dto.MatchDto;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.entity.Member;
 import bside.com.project308.message.entity.Message;
@@ -11,7 +12,8 @@ public record MessageRoomDto(Long id,
                              MemberDto fromMember,
                              MemberDto toMember,
                              LocalDateTime createdTime,
-                             MessageDto lastMessage
+                             MessageDto lastMessage,
+                                MatchDto matchDto
 
 
 ) {
@@ -28,6 +30,9 @@ public record MessageRoomDto(Long id,
                                     MemberDto.from(messageRoom.getFromMember()),
                                     MemberDto.from(messageRoom.getToMember()),
                                     messageRoom.getCreatedTime(),
-                                    messageDto);
+                                    messageDto,
+                                    MatchDto.from(messageRoom.getMatch()));
     }
+
+
 }

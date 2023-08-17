@@ -1,18 +1,13 @@
 package bside.com.project308.member.service;
 
 import bside.com.project308.admin.Type;
-import bside.com.project308.admin.entity.UserLog;
 import bside.com.project308.admin.service.UserLogService;
 import bside.com.project308.common.config.CacheConfig;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.DuplicatedMemberException;
 import bside.com.project308.common.exception.ResourceNotFoundException;
-import bside.com.project308.common.exception.UnAuthorizedAccessException;
-import bside.com.project308.match.entity.Match;
-import bside.com.project308.match.repository.CountRepository;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.member.constant.Position;
-import bside.com.project308.member.constant.RegistrationSource;
 import bside.com.project308.member.dto.InterestDto;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.SkillDto;
@@ -28,7 +23,6 @@ import bside.com.project308.member.repository.SkillMemberRepository;
 import bside.com.project308.member.repository.SkillRepository;
 import bside.com.project308.security.jwt.JwtTokenProvider;
 import bside.com.project308.security.security.UserPrincipal;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
@@ -50,9 +44,27 @@ public class MemberService {
     private final SkillRepository skillRepository;
     private final InterestRepository interestRepository;
     private final CacheManager cacheManager;
-    private final MatchRepository matchRepository;
     private final UserLogService userLogService;
 
+
+    public Member getMemberById(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+    }
+
+    public Set<Member> getAllInterestingMemberByPosition(List<Position> interestingPositions, Member member){
+        return memberRepository.findSetByPositionInAndIdNot(interestingPositions, member.getId());
+    }
+
+    public Set<Member> getTeckyMembers() {
+        Set<String> teckyMemberId = new HashSet(Arrays.asList("2958207482", "2958207040", "2947153334", "2955591080"));
+        return new HashSet<>(memberRepository.findInitialMemberProByUserProviderIdIn(teckyMemberId));
+    }
+
+    public Member getMemberWithInterest(Long memberId) {
+        Member member = getMemberById(memberId);
+        List<Interest> byMember = interestRepository.findByMember(member);
+        return member;
+    }
 
 
     @Transactional(readOnly = true)

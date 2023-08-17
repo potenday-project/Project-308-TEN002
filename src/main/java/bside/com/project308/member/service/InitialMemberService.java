@@ -1,33 +1,25 @@
 package bside.com.project308.member.service;
 
 import bside.com.project308.common.constant.ResponseCode;
-import bside.com.project308.common.exception.DuplicatedMemberException;
 import bside.com.project308.common.exception.ResourceNotFoundException;
+import bside.com.project308.match.controller.usecase.MakeMatchAndMessageRoom;
 import bside.com.project308.match.dto.MatchDto;
+import bside.com.project308.match.entity.Match;
 import bside.com.project308.match.service.MatchService;
 import bside.com.project308.match.service.SwipeService;
-import bside.com.project308.member.dto.InterestDto;
 import bside.com.project308.member.dto.MemberDto;
-import bside.com.project308.member.dto.SkillDto;
 import bside.com.project308.member.dto.request.SignUpRequest;
-import bside.com.project308.member.entity.Interest;
 import bside.com.project308.member.entity.Member;
-import bside.com.project308.member.entity.Skill;
-import bside.com.project308.member.entity.SkillMember;
 import bside.com.project308.member.repository.MemberRepository;
 import bside.com.project308.message.dto.MessageRoomDto;
 import bside.com.project308.message.dto.request.MessageRequest;
-import bside.com.project308.message.entity.Message;
-import bside.com.project308.message.entity.MessageRoom;
 import bside.com.project308.message.repository.MessageRoomRepository;
 import bside.com.project308.message.service.MessageRoomService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +32,7 @@ public class InitialMemberService {
     private final MessageRoomService messageRoomService;
     private final MessageRoomRepository messageRoomRepository;
     private final SwipeService swipeService;
+    private final MakeMatchAndMessageRoom makeMatchAndMessageRoom;
 
 
     public MemberDto singUp(SignUpRequest signUpRequest) {
@@ -58,7 +51,7 @@ public class InitialMemberService {
         Set<String> initialMemberId = new HashSet<String>(Arrays.asList("2958207482", "2958207040", "2947153334", "2955591080"));
         if(!initialMemberId.contains(createdMember.getUserProviderId())){
             List<Member> initialMember = memberRepository.findInitialMemberProByUserProviderIdIn(initialMemberId);
-            initialMember.stream().forEach(member -> swipeService.postLike(member.getId(), createdMember.getId(), true));
+            initialMember.stream().forEach(member -> swipeService.swipe(member, createdMember, true));
         }
 
 
@@ -96,7 +89,9 @@ public class InitialMemberService {
 
     private MatchDto defaultTeckyMessage(Member createdMember) {
         Member tecky = memberRepository.findByUserProviderId("1").orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
-        MatchDto match = matchService.createMatch(tecky, createdMember);
+        MessageRoomDto messageRoomDto = makeMatchAndMessageRoom.execute(tecky, createdMember);
+
+        //Match match = matchService.createMatch(tecky, createdMember);
 
         MessageRoomDto messageRoom = messageRoomService.getMessageRoom(tecky.getId(), createdMember.getId());
         String message = "만나서 반가워요! :) 저희는 창업 팀매칭을 지원하는 tecky팀입니다!";
@@ -110,7 +105,7 @@ public class InitialMemberService {
         message = "새로운 만남이 성사될 거에요!";
         messageRequest = new MessageRequest(messageRoom.id(), message);
         messageRoomService.writeMessage(tecky.getId(), messageRequest);
-        return match;
+        return messageRoomDto.matchDto();
     }
 
 

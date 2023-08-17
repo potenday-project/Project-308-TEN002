@@ -46,15 +46,13 @@ public class MessageRoomService {
     private final MatchRepository matchRepository;
     private final EntityManager em;
 
-    public void createMessageRoom(Member fromMember, Member toMember, Match createdMatch) {
+    public MessageRoom createMessageRoom(Member fromMember, Member toMember, Match createdMatch) {
         MessageRoom newMessageRoom = MessageRoom.of(fromMember, toMember, createdMatch);
         messageRoomRepository.save(newMessageRoom);
+        return newMessageRoom;
     }
 
     public MessageRoomDto getMessageRoom(Long matchId) {
-
-        //Member fromMember = memberRepository.findById(fromMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
-        //Member toMember = memberRepository.findById(toMemberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
         Match match = matchRepository.findById(matchId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
         MessageRoom messageRoom = messageRoomRepository.findByMatch(match)
                                                        .orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));

@@ -36,7 +36,7 @@ import java.util.Arrays;
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
