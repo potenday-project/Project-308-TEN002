@@ -5,16 +5,13 @@ import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.InvalidAccessException;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.common.exception.UnAuthorizedAccessException;
-import bside.com.project308.match.algorithm.MatchAlgorithm;
 import bside.com.project308.match.algorithm.MatchManager;
 import bside.com.project308.match.dto.MatchDto;
 import bside.com.project308.match.entity.Match;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.entity.Member;
-import bside.com.project308.member.repository.MemberRepository;
 import bside.com.project308.member.service.MemberService;
-import bside.com.project308.message.service.MessageRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,13 +30,10 @@ public class MatchService {
     private final MatchManager matchManager;
 
 
-    public MatchDto getMatch(Long fromMemberId, Long toMemberId) {
-        Member fromMember = memberService.getMemberById(fromMemberId);
-        Member toMember = memberService.getMemberById(toMemberId);
+    public Match getMatch(Member fromMember, Member toMember) {
+        Match match = matchRepository.findMatchByMemberSet(fromMember, toMember).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
 
-        Match match = matchRepository.findByFromMemberAndToMember(fromMember, toMember).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
-
-        return MatchDto.from(match);
+        return match;
     }
 
     public List<MemberDto> getTodayMatchPartnerList(Member member) {
@@ -47,7 +41,7 @@ public class MatchService {
     }
 
     public Match createMatch(Member fromMember, Member toMember) {
-         matchRepository.findByFromMemberAndToMember(fromMember, toMember).ifPresent(
+         matchRepository.findMatchByMemberSet(fromMember, toMember).ifPresent(
                  member -> {
                      throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST);
                  }

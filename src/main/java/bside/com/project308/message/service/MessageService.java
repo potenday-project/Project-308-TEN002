@@ -3,6 +3,7 @@ package bside.com.project308.message.service;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.ResourceNotFoundException;
 import bside.com.project308.common.exception.UnAuthorizedAccessException;
+import bside.com.project308.member.entity.Member;
 import bside.com.project308.message.dto.MessageDto;
 import bside.com.project308.message.entity.Message;
 import bside.com.project308.message.entity.MessageRoom;
@@ -21,14 +22,20 @@ import java.util.List;
 public class MessageService {
 
     private final MessageRepository messageRepository;
-    private final MessageRoomRepository messageRoomRepository;
 
-    //todo:어차피 영속성컨텍스트로 묶이니 안전하게 dto로 반환해서 MessageRoomService에서의 find호출은 추가 쿼리를 안 날리 -> 안전하게 dto로 반환할지 고민
-    public Message writeMessage(Long messageRoomId, Long memberId, String content) {
-        MessageRoom messageRoom = messageRoomRepository.findById(messageRoomId).orElseThrow(() ->
-                new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM)
-        );
+    @Transactional(readOnly = true)
+    public boolean isUnReadMessageInRoom(Member member, MessageRoom messageRoom){
+        boolean messageCheckResult = member == messageRoom.getFromMember() ?
+                messageRepository.existsByIsFromMemberMessageAndIsReadFalseAndMessageRoom(false, messageRoom) :
+                messageRepository.existsByIsFromMemberMessageAndIsReadFalseAndMessageRoom(true, messageRoom);
+        return messageCheckResult;
+    }
+
+
+    public Message writeMessage(MessageRoom messageRoom, Long memberId, String content) {
+
         Message newMessage = null;
+
         if (messageRoom.getFromMember().getId() == memberId) {
             newMessage = Message.of(content, messageRoom, true);
         } else if(messageRoom.getToMember().getId() == memberId){
@@ -36,16 +43,16 @@ public class MessageService {
         } else{
             throw new UnAuthorizedAccessException(ResponseCode.NOT_AUTHORIZED_ACCESS_TO_MESSAGING);
         }
+
         messageRepository.save(newMessage);
         return newMessage;
     }
 
-    public List<Message> readMessage(Long messageRoomId, Long memberId, Pageable pageable) {
-        MessageRoom messageRoom = messageRoomRepository.findById(messageRoomId).orElseThrow(() ->
-                new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM)
-        );
+    public List<Message> readMessage(MessageRoom messageRoom, Long memberId, Pageable pageable) {
+
         List<Message> messages = messageRepository.findByMessageRoom(messageRoom);
-        //메시지 읽기 처리 todo: 리팩토링 필요
+
+        //로그인 사용자 기준 상대방이 보낸 메시지에 대해 읽기처리
         if (messageRoom.getFromMember().getId() == memberId) {
             messages.stream().filter(message -> !message.isFromMemberMessage()).forEach(Message::readMessage);
         }else{

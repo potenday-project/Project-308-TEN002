@@ -12,9 +12,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface MatchRepository extends JpaRepository<Match, Long> {
-    @Query("select m from Match m where (m.fromMember = :fromMember and m.toMember = :toMember) or (m.fromMember = :toMember and m.toMember = :fromMember)")
-    Optional<Match> findByFromMemberAndToMember(@Param("fromMember") Member fromMember, @Param("toMember") Member toMember);
-
+    @Query("select m from Match m join fetch m.fromMember join fetch m.toMember where (m.fromMember = :fromMember and m.toMember = :toMember) or (m.fromMember = :toMember and m.toMember = :fromMember)")
+    Optional<Match> findMatchByMemberSet(@Param("fromMember") Member fromMember, @Param("toMember") Member toMember);
     Set<Match> findByFromMemberOrToMember(Member fromMember, Member toMember);
     @EntityGraph(attributePaths = {"fromMember", "toMember"})
     List<Match> findByFromMemberOrToMemberAndCheckedFalse(Member fromMember, Member toMember);

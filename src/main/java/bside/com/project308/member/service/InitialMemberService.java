@@ -11,8 +11,10 @@ import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.request.SignUpRequest;
 import bside.com.project308.member.entity.Member;
 import bside.com.project308.member.repository.MemberRepository;
+import bside.com.project308.message.controller.usecase.WriteMessageAndUpdateLastMessage;
 import bside.com.project308.message.dto.MessageRoomDto;
 import bside.com.project308.message.dto.request.MessageRequest;
+import bside.com.project308.message.entity.MessageRoom;
 import bside.com.project308.message.repository.MessageRoomRepository;
 import bside.com.project308.message.service.MessageRoomService;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +29,13 @@ import java.util.*;
 public class InitialMemberService {
 
     private final MemberRepository memberRepository;
-    private final MatchService matchService;
+
     private final MemberService memberService;
     private final MessageRoomService messageRoomService;
-    private final MessageRoomRepository messageRoomRepository;
+
     private final SwipeService swipeService;
     private final MakeMatchAndMessageRoom makeMatchAndMessageRoom;
-
+    private final WriteMessageAndUpdateLastMessage writeMessageAndUpdateLastMessage;
 
     public MemberDto singUp(SignUpRequest signUpRequest) {
         MemberDto memberDto = memberService.singUp(signUpRequest);
@@ -93,18 +95,18 @@ public class InitialMemberService {
 
         //Match match = matchService.createMatch(tecky, createdMember);
 
-        MessageRoomDto messageRoom = messageRoomService.getMessageRoom(tecky.getId(), createdMember.getId());
+        MessageRoom messageRoom = messageRoomService.getMessageRoom(tecky, createdMember);
         String message = "만나서 반가워요! :) 저희는 창업 팀매칭을 지원하는 tecky팀입니다!";
-        MessageRequest messageRequest = new MessageRequest(messageRoom.id(), message);
-        messageRoomService.writeMessage(tecky.getId(), messageRequest);
+        MessageRequest messageRequest = new MessageRequest(messageRoom.getId(), message);
+        writeMessageAndUpdateLastMessage.execute(tecky.getId(), messageRequest);
 
         message = "나와 핏이 맞을 것 같은 사람을 찾으셨다면 오른쪽으로 스와이프 해보세요";
-        messageRequest = new MessageRequest(messageRoom.id(), message);
-        messageRoomService.writeMessage(tecky.getId(), messageRequest);
+        messageRequest = new MessageRequest(messageRoom.getId(), message);
+        writeMessageAndUpdateLastMessage.execute(tecky.getId(), messageRequest);
 
         message = "새로운 만남이 성사될 거에요!";
-        messageRequest = new MessageRequest(messageRoom.id(), message);
-        messageRoomService.writeMessage(tecky.getId(), messageRequest);
+        messageRequest = new MessageRequest(messageRoom.getId(), message);
+        writeMessageAndUpdateLastMessage.execute(tecky.getId(), messageRequest);
         return messageRoomDto.matchDto();
     }
 

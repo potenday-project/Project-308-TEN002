@@ -13,25 +13,49 @@ public record MessageRoomDto(Long id,
                              MemberDto toMember,
                              LocalDateTime createdTime,
                              MessageDto lastMessage,
-                                MatchDto matchDto
+                             MatchDto matchDto
 
 
 ) {
 
     public static MessageRoomDto from(MessageRoom messageRoom) {
         MessageDto messageDto = null;
+
         //todo : lastMessage null에 대한 해결 필요
         if (messageRoom.getLastMessage() == null) {
             messageDto = MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getToMember());
         }else{
             messageDto = MessageDto.from(messageRoom.getLastMessage());
         }
+
+
         return new MessageRoomDto(messageRoom.getId(),
                                     MemberDto.from(messageRoom.getFromMember()),
                                     MemberDto.from(messageRoom.getToMember()),
                                     messageRoom.getCreatedTime(),
                                     messageDto,
                                     MatchDto.from(messageRoom.getMatch()));
+    }
+
+    public static MessageRoomDto from(MessageRoom messageRoom, Member member) {
+        MessageDto messageDto = null;
+
+        //todo : lastMessage null에 대한 해결 필요
+        if (messageRoom.getLastMessage() == null) {
+            messageDto = member == messageRoom.getFromMember() ?
+                    MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getToMember()) :
+                    MessageDto.defaultMessage(messageRoom.getId(), messageRoom.getFromMember());
+        }else{
+            messageDto = MessageDto.from(messageRoom.getLastMessage());
+        }
+
+
+        return new MessageRoomDto(messageRoom.getId(),
+                MemberDto.from(messageRoom.getFromMember()),
+                MemberDto.from(messageRoom.getToMember()),
+                messageRoom.getCreatedTime(),
+                messageDto,
+                MatchDto.from(messageRoom.getMatch()));
     }
 
 
