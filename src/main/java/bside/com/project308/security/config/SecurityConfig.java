@@ -1,8 +1,6 @@
 package bside.com.project308.security.config;
 
-import bside.com.project308.security.filter.CustomJwtAuthorizationFilter;
-import bside.com.project308.security.filter.CustomJwtLoginFilter;
-import bside.com.project308.security.filter.CustomLoginFilter;
+import bside.com.project308.security.filter.*;
 import bside.com.project308.security.security.CustomAccessDeniedHandler;
 import bside.com.project308.security.security.CustomAuthenticationEntrypoint;
 import bside.com.project308.security.security.CustomLogoutHandler;
@@ -45,6 +43,9 @@ public class SecurityConfig {
     private final CustomJwtAuthorizationFilter jwtAuthorizationFilter;
     private final CustomJwtLoginFilter customJwtLoginFilter;
     private final CacheManager cacheManager;
+    private final OauthLoginFilter OauthAuthFilter;
+    private final SocialLoginFilter socialLoginFilter;
+    private final Oauth2UserService oauth2UserService;
     @Bean
     @ConditionalOnProperty(prefix = "spring.config.activate", name = "on-profile", havingValue = "local")
     public SecurityFilterChain localFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -69,20 +70,22 @@ public class SecurityConfig {
                                     .requestMatchers(new AntPathRequestMatcher("/login/oauth2/code/**")).permitAll()
                                     .anyRequest().authenticated()
                             )
-                .addFilterAfter(customJwtLoginFilter, LogoutFilter.class)
-                .addFilterBefore(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
-                .addFilterAfter(customLoginFilter, CustomJwtLoginFilter.class)
-                .headers(headerConfigurer -> headerConfigurer.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()))
+                    .addFilterAfter(customJwtLoginFilter, LogoutFilter.class)
+                    .addFilterBefore(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
+                    .addFilterBefore(socialLoginFilter, CustomJwtAuthorizationFilter.class)
+                    .addFilterBefore(OauthAuthFilter, SocialLoginFilter.class)
+                    .addFilterAfter(customLoginFilter, CustomJwtLoginFilter.class)
+                    .headers(headerConfigurer -> headerConfigurer.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()))
                     .exceptionHandling(exConfigurer -> exConfigurer
-                                   .authenticationEntryPoint(customAuthenticationEntrypoint())
-                                    .accessDeniedHandler(customAccessDeniedHandler()))
-                .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler())
-                                                            .addLogoutHandler(customLogoutHandler()));
-
-/*        httpSecurity
+                            .authenticationEntryPoint(customAuthenticationEntrypoint())
+                            .accessDeniedHandler(customAccessDeniedHandler()))
+                    .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler())
+                                                                .addLogoutHandler(customLogoutHandler()));
+/*
+        httpSecurity
                     .oauth2Login(oAuthConfigurer -> oAuthConfigurer
                                                         .userInfoEndpoint(userInfo -> userInfo
-                                                                .userService(oAuth2UserService)
+                                                                .userService(oauth2UserService)
                                                                 )
 
                             .defaultSuccessUrl("/info")
@@ -114,7 +117,7 @@ public class SecurityConfig {
 
         httpSecurity
                     .addFilterAfter(customJwtLoginFilter, LogoutFilter.class)
-                    .addFilterBefore(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
+                    .addFilterAfter(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
                     .addFilterAfter(customLoginFilter, CustomJwtLoginFilter.class)
                     .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler())
                                                                 .addLogoutHandler(customLogoutHandler()));
