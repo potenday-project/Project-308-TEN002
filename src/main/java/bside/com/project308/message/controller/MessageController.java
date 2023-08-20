@@ -48,7 +48,7 @@ public class MessageController {
     @PostMapping("/{messageRoomId}")
     public ResponseEntity<Response> writeMessage(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody MessageRequest messageRequest) {
         writeMessageAndUpdateLastMessage.execute(userPrincipal.id(), messageRequest);
-        MessageReadResponse messageInRoom = readAllMessageAndGetMessageRoom.execute(userPrincipal.id(), messageRequest.messageRoomId());
+        MessageReadResponse messageInRoom = readAllMessageAndGetMessageRoom.execute(messageRequest.messageRoomId(), userPrincipal.id());
         Response responseBody = Response.success(ResponseCode.SUCCESS.getCode(),messageInRoom);
 
         return ResponseEntity.status(HttpStatus.OK).body(responseBody);
@@ -56,7 +56,7 @@ public class MessageController {
 
     @GetMapping("/{messageRoomId}")
     public ResponseEntity<Response> readMessageInRoom(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable Long messageRoomId) {
-        MessageReadResponse messageInRoom = readAllMessageAndGetMessageRoom.execute(userPrincipal.id(), messageRoomId);
+        MessageReadResponse messageInRoom = readAllMessageAndGetMessageRoom.execute(messageRoomId, userPrincipal.id());
         Response responseBody = Response.success(ResponseCode.SUCCESS.getCode(),messageInRoom);
 
         return ResponseEntity.status(HttpStatus.OK).body(responseBody);

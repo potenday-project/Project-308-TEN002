@@ -22,4 +22,11 @@ public class MakeMatchAndMessageRoom {
         MessageRoom newMessageRoom = messageRoomService.createMessageRoom(fromMember, toMember, newMatch);
         return MessageRoomDto.from(newMessageRoom);
     }
+
+    @Transactional
+    public MessageRoom executeForSingUp(Member fromMember, Member toMember) {
+        Match newMatch = matchService.createMatch(fromMember, toMember);
+        MessageRoom newMessageRoom = messageRoomService.createMessageRoom(fromMember, toMember, newMatch);
+        return newMessageRoom;
+    }
 }

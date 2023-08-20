@@ -49,8 +49,6 @@ public class MatchService {
 
         Match newMatch = Match.of(fromMember, toMember);
         matchRepository.save(newMatch);
-
-        //todo: 양방향을 묶을 수 있는 로직이 필요
         return newMatch;
     }
 

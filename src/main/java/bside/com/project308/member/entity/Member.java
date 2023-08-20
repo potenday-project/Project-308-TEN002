@@ -73,6 +73,11 @@ public class Member extends BaseEntity {
         this.imgUrl = imgUrl == null ? this.imgUrl : imgUrl;
     }
 
+    public void updateSkillAndInterests(List<Interest> interests, List<SkillMember> skills) {
+        this.interests = interests;
+        this.skills = skills;
+    }
+
     public void updateLastLoginTime() {
         this.lastLogin = LocalDateTime.now();
     }

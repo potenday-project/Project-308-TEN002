@@ -97,7 +97,7 @@ public class MemberService {
         return MemberDto.from(member, interestDtos, skillDtos);
     }
 
-    public MemberDto singUp(SignUpRequest signUpRequest) {
+    public Member singUp(SignUpRequest signUpRequest) {
         memberRepository.findByUserProviderId(signUpRequest.userProviderId()).ifPresent(userProviderId -> {
             throw new DuplicatedMemberException(HttpStatus.BAD_REQUEST, ResponseCode.SIGN_UP_FAIL);
         });
@@ -112,19 +112,25 @@ public class MemberService {
                                         .build();
         memberRepository.save(member);
 
+        setMemberSkillAndInterest(member, signUpRequest);
+
+        userLogService.saveUserLog(member.getId(), Type.SIGN_UP);
+
+        return member;
+    }
+
+
+    private void setMemberSkillAndInterest(Member member, SignUpRequest signUpRequest) {
+
+        List<Interest> interests = signUpRequest.interest().stream().map(interest -> Interest.of(interest, member)).toList();
+        interestRepository.saveAll(interests);
+
         List<Skill> skills = skillRepository.findBySkillNameIn(signUpRequest.skill());
         List<SkillMember> skillMember = skills.stream().map(skill -> SkillMember.of(skill, member)).toList();
         skillMemberRepository.saveAll(skillMember);
 
 
-        List<Interest> interests = signUpRequest.interest().stream().map(interest -> Interest.of(interest, member)).toList();
-        interestRepository.saveAll(interests);
-
-        userLogService.saveUserLog(member.getId(), Type.SIGN_UP);
-        //todo: 양방향 연관관계 및 fetch join에 대해서는 고민, 데이터 뻥튀기 문제 있음
-        return MemberDto.from(member,
-                interests.stream().map(InterestDto::from).toList(),
-                skills.stream().map(SkillDto::from).toList());
+        member.updateSkillAndInterests(interests, skillMember);
     }
 
     public MemberDto update(Long memberId, MemberUpdateRequest memberUpdateRequest) {
