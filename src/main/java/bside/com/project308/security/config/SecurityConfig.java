@@ -30,6 +30,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
@@ -61,6 +62,7 @@ public class SecurityConfig {
                                     //.requestMatchers(new AntPathRequestMatcher("/.well-known/pki-validation/**")).permitAll()
                                     //.requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll()
                                     .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                                    .requestMatchers(new AntPathRequestMatcher("/subscribe/**")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/avatar/**")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/member/skill"), new AntPathRequestMatcher("/member/default-img")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/member/sign-up"), new AntPathRequestMatcher("/member/skill", "GET")).permitAll()
@@ -107,6 +109,7 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(authConfigurer -> authConfigurer
                             .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll()
                             .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                            .requestMatchers(new AntPathRequestMatcher("/subscribe/test/**")).permitAll()
                             .requestMatchers(HttpMethod.GET, "/member/skill", "/member/default-img", "/avatar/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/member/sign-up").permitAll()
                             .requestMatchers(HttpMethod.GET, "/").permitAll()
@@ -129,7 +132,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://coworker-matching.vercel.app"));
+        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://coworker-matching.vercel.app", "https://www.w3schools.com"));
         corsConfiguration.setAllowedMethods(Arrays.asList("*"));
         corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
         corsConfiguration.setAllowCredentials(true);

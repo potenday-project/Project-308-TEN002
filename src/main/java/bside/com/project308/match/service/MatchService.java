@@ -30,6 +30,7 @@ public class MatchService {
     private final MatchManager matchManager;
 
 
+
     public Match getMatch(Member fromMember, Member toMember) {
         Match match = matchRepository.findMatchByMemberSet(fromMember, toMember).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MATCH_NOT_FOUND));
 
@@ -49,8 +50,11 @@ public class MatchService {
 
         Match newMatch = Match.of(fromMember, toMember);
         matchRepository.save(newMatch);
+
         return newMatch;
     }
+
+
 
     public List<MatchDto> getUncheckedMatchList(Long memberId) {
         Member member = memberService.getMemberById(memberId);

@@ -7,8 +7,10 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @ConfigurationPropertiesScan
+@EnableAsync
 @SpringBootApplication(exclude = { OAuth2ClientAutoConfiguration.class, UserDetailsServiceAutoConfiguration.class})
 @EnableJpaAuditing
 public class Project308Application {

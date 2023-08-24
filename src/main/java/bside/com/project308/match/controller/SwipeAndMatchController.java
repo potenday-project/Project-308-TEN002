@@ -16,6 +16,7 @@ import bside.com.project308.match.service.SwipeService;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.response.MemberResponse;
 import bside.com.project308.message.service.MessageRoomService;
+import bside.com.project308.notification.service.MatchNotificationService;
 import bside.com.project308.security.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,11 +32,9 @@ import java.util.List;
 public class SwipeAndMatchController {
 
     private final MatchService matchService;
-    private final SwipeService swipeService;
-    private final CountService countService;
-    private final MessageRoomService messageRoomService;
     private final GetTodayMatchPartnerList getTodayMatchPartnerList;
     private final SwipeAndCheckMatch swipeAndCheckMatch;
+    private final MatchNotificationService matchNotificationService;
 
     @GetMapping("/today-list")
     public ResponseEntity<Response> getMatchTodayPartner(@AuthenticationPrincipal UserPrincipal userPrincipal) {
@@ -87,6 +86,7 @@ public class SwipeAndMatchController {
     public ResponseEntity<Response> checkMatch(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                @PathVariable Long matchId) {
         matchService.checkMatch(userPrincipal.id(), matchId);
+        matchNotificationService.checkMatch(userPrincipal.id(), matchId);
         return ResponseEntity.ok(Response.success(ResponseCode.SUCCESS.getCode()));
     }
 

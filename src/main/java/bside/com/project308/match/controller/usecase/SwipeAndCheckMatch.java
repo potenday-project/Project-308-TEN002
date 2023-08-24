@@ -32,10 +32,9 @@ public class SwipeAndCheckMatch {
         boolean isMatched = swipeService.swipe(fromMember, toMember, matchRequest.like());
         if (isMatched) {
             MessageRoomDto messageRoomDto = makeMatchAndMessageRoom.execute(fromMember, toMember);
-            return new SwipeResponse(countAfterSwipe, true, MatchResponse.from(messageRoomDto.matchDto()), messageRoomDto.id());
         }
 
-        return new SwipeResponse(countAfterSwipe, false, null, null);
+        return new SwipeResponse(countAfterSwipe);
 
     }
 

@@ -48,6 +48,14 @@ public class Message extends BaseEntity {
         this.isRead = true;
     }
 
+    public Long getMessageReceiverId() {
+        return isFromMemberMessage ? messageRoom.getToMember().getId() : messageRoom.getFromMember().getId();
+    }
+
+    public Long getMessageWriterId() {
+        return isFromMemberMessage ? messageRoom.getFromMember().getId() : messageRoom.getToMember().getId();
+    }
+
     public static Message getDefaultMessage(MessageRoom messageRoom, boolean isFromMemberMessage) {
         return new Message("새로운 매칭이 시작되었습니다.", messageRoom, isFromMemberMessage, false);
     }

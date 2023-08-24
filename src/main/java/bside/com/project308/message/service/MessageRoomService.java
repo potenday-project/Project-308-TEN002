@@ -40,6 +40,12 @@ public class MessageRoomService {
                                     .orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
     }
 
+    @Transactional(readOnly = true)
+    public MessageRoom getMessageRoomByMatch(Long matchId) {
+        return messageRoomRepository.findById(matchId)
+                                    .orElseThrow(() -> new ResourceNotFoundException(ResponseCode.NO_MESSAGE_ROOM));
+    }
+
 
     @Transactional(readOnly = true)
     public List<MessageRoom> getAllMessageRoomList(Member member) {
