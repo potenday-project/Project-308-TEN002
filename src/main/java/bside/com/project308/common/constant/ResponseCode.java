@@ -16,6 +16,7 @@ public enum ResponseCode {
     BAD_REQUEST(HttpStatus.OK, 4000, "비정상 접근"),
     NOT_AUTHENTICATED(HttpStatus.OK, 4001, "인증되지 않은 사용자"),
     NOT_AUTHORIZED(HttpStatus.OK, 4002, "자원에 대한 접근 권한 없음"),
+    INVALID_TOKEN(HttpStatus.OK, 4003, "유효하지 않은 토큰"),
     MEMBER_NOT_FOUND(HttpStatus.OK, 4100, "해당 Id의 사용자 없음"),
     UNAUTHORIZED_MEMBER_ACCESS(HttpStatus.OK, 4101, "해당 Id는 사용자 정보에 대한 접근 권한 없음"),
     LOGIN_FAIL(HttpStatus.OK, 4102, "기존 가입 정보가 없습니다"),

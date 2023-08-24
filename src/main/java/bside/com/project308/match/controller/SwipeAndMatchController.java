@@ -3,9 +3,11 @@ package bside.com.project308.match.controller;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.InvalidAccessException;
 import bside.com.project308.common.response.Response;
+import bside.com.project308.match.controller.usecase.GetTodayMatchPartnerList;
+import bside.com.project308.match.controller.usecase.SwipeAndCheckMatch;
 import bside.com.project308.match.dto.MatchDto;
 import bside.com.project308.match.dto.request.MatchRequest;
-import bside.com.project308.match.dto.response.LikeResponse;
+import bside.com.project308.match.dto.response.SwipeResponse;
 import bside.com.project308.match.dto.response.MatchMemberResponse;
 import bside.com.project308.match.dto.response.MatchResponse;
 import bside.com.project308.match.service.CountService;
@@ -13,8 +15,8 @@ import bside.com.project308.match.service.MatchService;
 import bside.com.project308.match.service.SwipeService;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.response.MemberResponse;
-import bside.com.project308.message.dto.MessageRoomDto;
 import bside.com.project308.message.service.MessageRoomService;
+import bside.com.project308.notification.service.MatchNotificationService;
 import bside.com.project308.security.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,72 +24,37 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/match")
-public class MatchFeedController {
+public class SwipeAndMatchController {
 
     private final MatchService matchService;
-    private final SwipeService swipeService;
-    private final CountService countService;
-    private final MessageRoomService messageRoomService;
-
-    /*@GetMapping("/feed")
-    public ResponseEntity<Response> getMatchPartner(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        MemberDto matchPartner = matchService.getMatchPartner(userPrincipal.id());
-        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), MemberResponse.from(matchPartner)));
-
-    }*/
+    private final GetTodayMatchPartnerList getTodayMatchPartnerList;
+    private final SwipeAndCheckMatch swipeAndCheckMatch;
+    private final MatchNotificationService matchNotificationService;
 
     @GetMapping("/today-list")
     public ResponseEntity<Response> getMatchTodayPartner(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        /*
-        1. userPrincipal로 검색하면 match상대방이 한 명 나옴
-        * */
-
-        try{
-            countService.getMatchCount(userPrincipal.id());
-        }catch (InvalidAccessException e){
-            return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), Collections.emptyList()));
-
-        }
-
-        List<MemberDto> matchPartners = matchService.getTodayMatchPartner(userPrincipal.id());
+        List<MemberDto> matchPartners = getTodayMatchPartnerList.execute(userPrincipal.id());
         List<MemberResponse> matchPartnerResponses = matchPartners.stream().map(MemberResponse::from).toList();
-        if (matchPartnerResponses.size() > 5) {
-            matchPartnerResponses = matchPartnerResponses.subList(0, 5);
-        }
+
         return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.SUCCESS.getCode(), matchPartnerResponses));
 
     }
 
     @PostMapping("/like")
-    public ResponseEntity<Response> postLike(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody MatchRequest matchRequest) {
+    public ResponseEntity<Response> swipe(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody MatchRequest matchRequest) {
 
         // 비정상적 match요청을 검증하기 위한 process
         if (userPrincipal.id() == matchRequest.toMemberId()) {
             throw new InvalidAccessException(HttpStatus.OK, ResponseCode.BAD_REQUEST);
         }
 
-        //count를 소진한 경우에는 exception이 발생함
-
-        Integer usedCount = countService.matchUserAndGetMatchCount(userPrincipal.id());
-
-
-
-        Optional<MatchDto> matchDto = swipeService.postLike(userPrincipal.id(), matchRequest.toMemberId(), matchRequest.like());
-
-        if (matchDto.isPresent()) {
-            MessageRoomDto messageRoom = messageRoomService.getMessageRoom(matchDto.get().id());
-            MatchResponse matchResponse = MatchResponse.from(matchDto.get());
-            return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.LIKE_POST_SUCCESS.getCode(), new LikeResponse(usedCount, true, matchResponse, messageRoom.id())));
-        } else {
-            return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.LIKE_POST_SUCCESS.getCode(), new LikeResponse(usedCount, false, null, null)));
-        }
+        SwipeResponse swipeResponse = swipeAndCheckMatch.execute(userPrincipal.id(), matchRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.LIKE_POST_SUCCESS.getCode(), swipeResponse));
     }
 
     @GetMapping("/unchecked-match")
@@ -119,6 +86,7 @@ public class MatchFeedController {
     public ResponseEntity<Response> checkMatch(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                @PathVariable Long matchId) {
         matchService.checkMatch(userPrincipal.id(), matchId);
+        matchNotificationService.checkMatch(userPrincipal.id(), matchId);
         return ResponseEntity.ok(Response.success(ResponseCode.SUCCESS.getCode()));
     }
 

@@ -5,10 +5,7 @@ import bside.com.project308.common.entity.BaseTimeEntity;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.constant.RegistrationSource;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -39,6 +36,7 @@ public class Member extends BaseEntity {
     private LocalDateTime lastLogin;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
+    @Setter
     List<Interest> interests = new ArrayList<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
     List<SkillMember> skills = new ArrayList<>();
@@ -73,6 +71,11 @@ public class Member extends BaseEntity {
         this.position = position == null ? this.position : position;
         this.intro = intro == null ? this.intro : intro;
         this.imgUrl = imgUrl == null ? this.imgUrl : imgUrl;
+    }
+
+    public void updateSkillAndInterests(List<Interest> interests, List<SkillMember> skills) {
+        this.interests = interests;
+        this.skills = skills;
     }
 
     public void updateLastLoginTime() {

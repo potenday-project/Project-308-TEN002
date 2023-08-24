@@ -1,8 +1,6 @@
 package bside.com.project308.security.config;
 
-import bside.com.project308.security.filter.CustomJwtAuthorizationFilter;
-import bside.com.project308.security.filter.CustomJwtLoginFilter;
-import bside.com.project308.security.filter.CustomLoginFilter;
+import bside.com.project308.security.filter.*;
 import bside.com.project308.security.security.CustomAccessDeniedHandler;
 import bside.com.project308.security.security.CustomAuthenticationEntrypoint;
 import bside.com.project308.security.security.CustomLogoutHandler;
@@ -32,11 +30,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -45,6 +44,9 @@ public class SecurityConfig {
     private final CustomJwtAuthorizationFilter jwtAuthorizationFilter;
     private final CustomJwtLoginFilter customJwtLoginFilter;
     private final CacheManager cacheManager;
+    private final OauthLoginFilter OauthAuthFilter;
+    private final SocialLoginFilter socialLoginFilter;
+    private final Oauth2UserService oauth2UserService;
     @Bean
     @ConditionalOnProperty(prefix = "spring.config.activate", name = "on-profile", havingValue = "local")
     public SecurityFilterChain localFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -60,6 +62,7 @@ public class SecurityConfig {
                                     //.requestMatchers(new AntPathRequestMatcher("/.well-known/pki-validation/**")).permitAll()
                                     //.requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll()
                                     .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                                    .requestMatchers(new AntPathRequestMatcher("/subscribe/**")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/avatar/**")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/member/skill"), new AntPathRequestMatcher("/member/default-img")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/member/sign-up"), new AntPathRequestMatcher("/member/skill", "GET")).permitAll()
@@ -69,20 +72,22 @@ public class SecurityConfig {
                                     .requestMatchers(new AntPathRequestMatcher("/login/oauth2/code/**")).permitAll()
                                     .anyRequest().authenticated()
                             )
-                .addFilterAfter(customJwtLoginFilter, LogoutFilter.class)
-                .addFilterBefore(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
-                .addFilterAfter(customLoginFilter, CustomJwtLoginFilter.class)
-                .headers(headerConfigurer -> headerConfigurer.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()))
+                    .addFilterAfter(customJwtLoginFilter, LogoutFilter.class)
+                    .addFilterBefore(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
+                    .addFilterBefore(socialLoginFilter, CustomJwtAuthorizationFilter.class)
+                    .addFilterBefore(OauthAuthFilter, SocialLoginFilter.class)
+                    .addFilterAfter(customLoginFilter, CustomJwtLoginFilter.class)
+                    .headers(headerConfigurer -> headerConfigurer.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()))
                     .exceptionHandling(exConfigurer -> exConfigurer
-                                   .authenticationEntryPoint(customAuthenticationEntrypoint())
-                                    .accessDeniedHandler(customAccessDeniedHandler()))
-                .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler())
-                                                            .addLogoutHandler(customLogoutHandler()));
-
-/*        httpSecurity
+                            .authenticationEntryPoint(customAuthenticationEntrypoint())
+                            .accessDeniedHandler(customAccessDeniedHandler()))
+                    .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler())
+                                                                .addLogoutHandler(customLogoutHandler()));
+/*
+        httpSecurity
                     .oauth2Login(oAuthConfigurer -> oAuthConfigurer
                                                         .userInfoEndpoint(userInfo -> userInfo
-                                                                .userService(oAuth2UserService)
+                                                                .userService(oauth2UserService)
                                                                 )
 
                             .defaultSuccessUrl("/info")
@@ -104,6 +109,7 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(authConfigurer -> authConfigurer
                             .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll()
                             .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                            .requestMatchers(new AntPathRequestMatcher("/subscribe/test/**")).permitAll()
                             .requestMatchers(HttpMethod.GET, "/member/skill", "/member/default-img", "/avatar/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/member/sign-up").permitAll()
                             .requestMatchers(HttpMethod.GET, "/").permitAll()
@@ -114,7 +120,7 @@ public class SecurityConfig {
 
         httpSecurity
                     .addFilterAfter(customJwtLoginFilter, LogoutFilter.class)
-                    .addFilterBefore(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
+                    .addFilterAfter(jwtAuthorizationFilter, CustomJwtLoginFilter.class)
                     .addFilterAfter(customLoginFilter, CustomJwtLoginFilter.class)
                     .logout(logoutConfigurer -> logoutConfigurer.logoutSuccessHandler(customLogoutSuccessHandler())
                                                                 .addLogoutHandler(customLogoutHandler()));
@@ -126,7 +132,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://coworker-matching.vercel.app"));
+        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://coworker-matching.vercel.app", "https://www.w3schools.com"));
         corsConfiguration.setAllowedMethods(Arrays.asList("*"));
         corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
         corsConfiguration.setAllowCredentials(true);

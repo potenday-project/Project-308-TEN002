@@ -4,12 +4,12 @@ import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.response.Response;
 import bside.com.project308.match.service.SwipeService;
 import bside.com.project308.member.constant.Position;
+import bside.com.project308.member.contoller.usecase.SingUpMemberAndSetDefaultMatch;
 import bside.com.project308.member.dto.response.ImgResponse;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.request.MemberUpdateRequest;
 import bside.com.project308.member.dto.request.SignUpRequest;
 import bside.com.project308.member.dto.response.MemberResponse;
-import bside.com.project308.member.service.InitialMemberService;
 import bside.com.project308.member.service.MemberService;
 import bside.com.project308.member.service.SkillService;
 import bside.com.project308.security.security.UserPrincipal;
@@ -30,15 +30,9 @@ import java.util.List;
 public class MemberController {
     private final MemberService memberService;
     private final SkillService skillService;
-    private final SwipeService swipeService;
-    private final InitialMemberService initialMemberService;
+    private final SingUpMemberAndSetDefaultMatch singUpMemberAndSetDefaultMatch;
 
-/*    @GetMapping
-    public ResponseEntity<Response> getMember(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        Response result = Response.success(ResponseCode.SUCCESS.getCode(),
-                MemberResponse.from(memberService.getMemberInfo(userPrincipal.id())));
-        return ResponseEntity.status(HttpStatus.OK).body(result);
-    }*/
+
     @GetMapping
     public ResponseEntity<Response> getMemberInfo(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         MemberDto memberInfo = memberService.getMemberInfo(userPrincipal.id());
@@ -63,28 +57,8 @@ public class MemberController {
 
     @PostMapping("/sign-up")
     public ResponseEntity<Response> signUp(@Validated @RequestBody SignUpRequest signUpRequest) {
-        //todo: 다시 걸어줘야함
-        /*if (SecurityContextHolder.getContext().getAuthentication() != null && !(SecurityContextHolder.getContext().getAuthentication() instanceof AnonymousAuthenticationToken)) {
-            throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.SIGN_UP_FAIL, "회원 가입이 불가합니다.");
-        }*/
 
-        MemberDto createdMember = initialMemberService.singUp(signUpRequest);
-
-
-
-/*
-        //todo: 삭제 대상 코드
-        if ("2947153334".equals(signUpRequest.userProviderId())) {
-            log.error("---------------------지혜님 로그인 ----------------------------------------");
-            List<Member> members = SetUp.members;
-            for (int i = 10; i < members.size(); i++) {
-                visitService.postLike(members.get(i).getId(), createdMember.id(), true);
-            }
-
-        }
-*/
-
-
+        MemberDto createdMember = singUpMemberAndSetDefaultMatch.execute(signUpRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(Response.success(ResponseCode.SIGNUP_SUCCESS.getCode(), MemberResponse.from(createdMember)));
     }
 

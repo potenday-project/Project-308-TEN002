@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface MessageRoomRepository extends JpaRepository<MessageRoom, Long> {
     @Query("select mr from MessageRoom mr where (mr.fromMember = :fromMember and mr.toMember = :toMember)" +
             "or (mr.fromMember = :toMember and mr.toMember = :fromMember)")
-    Optional<MessageRoom> findByFromMemberAndToMember(@Param("fromMember") Member fromMember, @Param("toMember") Member toMember);
+    Optional<MessageRoom> findByMemberSet(@Param("fromMember") Member fromMember, @Param("toMember") Member toMember);
     List<MessageRoom> findByFromMemberOrToMember(Member fromMember, Member toMember);
 
     @EntityGraph(attributePaths = {"fromMember", "toMember"})

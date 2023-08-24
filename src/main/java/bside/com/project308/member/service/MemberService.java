@@ -1,18 +1,13 @@
 package bside.com.project308.member.service;
 
 import bside.com.project308.admin.Type;
-import bside.com.project308.admin.entity.UserLog;
 import bside.com.project308.admin.service.UserLogService;
 import bside.com.project308.common.config.CacheConfig;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.DuplicatedMemberException;
 import bside.com.project308.common.exception.ResourceNotFoundException;
-import bside.com.project308.common.exception.UnAuthorizedAccessException;
-import bside.com.project308.match.entity.Match;
-import bside.com.project308.match.repository.CountRepository;
 import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.member.constant.Position;
-import bside.com.project308.member.constant.RegistrationSource;
 import bside.com.project308.member.dto.InterestDto;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.SkillDto;
@@ -28,7 +23,6 @@ import bside.com.project308.member.repository.SkillMemberRepository;
 import bside.com.project308.member.repository.SkillRepository;
 import bside.com.project308.security.jwt.JwtTokenProvider;
 import bside.com.project308.security.security.UserPrincipal;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
@@ -50,9 +44,27 @@ public class MemberService {
     private final SkillRepository skillRepository;
     private final InterestRepository interestRepository;
     private final CacheManager cacheManager;
-    private final MatchRepository matchRepository;
     private final UserLogService userLogService;
 
+
+    public Member getMemberById(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
+    }
+
+    public Set<Member> getAllInterestingMemberByPosition(List<Position> interestingPositions, Member member){
+        return memberRepository.findSetByPositionInAndIdNot(interestingPositions, member.getId());
+    }
+
+    public Set<Member> getTeckyMembers() {
+        Set<String> teckyMemberId = new HashSet(Arrays.asList("2958207482", "2958207040", "2947153334", "2955591080"));
+        return new HashSet<>(memberRepository.findInitialMemberProByUserProviderIdIn(teckyMemberId));
+    }
+
+    public Member getMemberWithInterest(Long memberId) {
+        Member member = getMemberById(memberId);
+        List<Interest> byMember = interestRepository.findByMember(member);
+        return member;
+    }
 
 
     @Transactional(readOnly = true)
@@ -85,7 +97,7 @@ public class MemberService {
         return MemberDto.from(member, interestDtos, skillDtos);
     }
 
-    public MemberDto singUp(SignUpRequest signUpRequest) {
+    public Member singUp(SignUpRequest signUpRequest) {
         memberRepository.findByUserProviderId(signUpRequest.userProviderId()).ifPresent(userProviderId -> {
             throw new DuplicatedMemberException(HttpStatus.BAD_REQUEST, ResponseCode.SIGN_UP_FAIL);
         });
@@ -100,19 +112,25 @@ public class MemberService {
                                         .build();
         memberRepository.save(member);
 
+        setMemberSkillAndInterest(member, signUpRequest);
+
+        userLogService.saveUserLog(member.getId(), Type.SIGN_UP);
+
+        return member;
+    }
+
+
+    private void setMemberSkillAndInterest(Member member, SignUpRequest signUpRequest) {
+
+        List<Interest> interests = signUpRequest.interest().stream().map(interest -> Interest.of(interest, member)).toList();
+        interestRepository.saveAll(interests);
+
         List<Skill> skills = skillRepository.findBySkillNameIn(signUpRequest.skill());
         List<SkillMember> skillMember = skills.stream().map(skill -> SkillMember.of(skill, member)).toList();
         skillMemberRepository.saveAll(skillMember);
 
 
-        List<Interest> interests = signUpRequest.interest().stream().map(interest -> Interest.of(interest, member)).toList();
-        interestRepository.saveAll(interests);
-
-        userLogService.saveUserLog(member.getId(), Type.SIGN_UP);
-        //todo: 양방향 연관관계 및 fetch join에 대해서는 고민, 데이터 뻥튀기 문제 있음
-        return MemberDto.from(member,
-                interests.stream().map(InterestDto::from).toList(),
-                skills.stream().map(SkillDto::from).toList());
+        member.updateSkillAndInterests(interests, skillMember);
     }
 
     public MemberDto update(Long memberId, MemberUpdateRequest memberUpdateRequest) {

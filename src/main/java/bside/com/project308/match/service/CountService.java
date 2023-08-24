@@ -18,40 +18,33 @@ import org.springframework.transaction.annotation.Transactional;
 public class CountService {
 
     private final CountRepository countRepository;
-    private final MemberRepository memberRepository;
 
-    public Integer getMatchCount(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
-        Count memberCount = countRepository.findByMember(member).orElseGet(() -> {
-
+    public Count getSwipeCount(Member member) {
+        Count swipeCount = countRepository.findByMember(member).orElseGet(() -> {
             Count newCount = Count.of(member);
             countRepository.save(newCount);
             return newCount;
         });
 
-        if(memberCount.isExhausted()){
-            throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.MATCH_COUNT_EXHAUSTED);
-        }
 
-        return memberCount.getCurCount();
+        return swipeCount;
 
     }
 
-    public Integer matchUserAndGetMatchCount(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new ResourceNotFoundException(ResponseCode.MEMBER_NOT_FOUND));
-        Count memberCount = countRepository.findByMember(member).orElseGet(() -> {
+    public Count useSwipeAndGetCount(Member member) {
 
+        Count swipeCount = countRepository.findByMember(member).orElseGet(() -> {
             Count newCount = Count.of(member);
             countRepository.save(newCount);
             return newCount;
         });
 
-        if(memberCount.isExhausted()){
+        if(swipeCount.isExhausted()){
             throw new InvalidAccessException(HttpStatus.BAD_REQUEST, ResponseCode.MATCH_COUNT_EXHAUSTED);
         }
 
-        memberCount.useMatch();
-        return memberCount.getCurCount();
+        swipeCount.useMatch();
+        return swipeCount;
 
     }
 }
