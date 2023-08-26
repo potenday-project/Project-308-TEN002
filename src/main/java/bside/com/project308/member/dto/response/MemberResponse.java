@@ -20,6 +20,9 @@ public record MemberResponse(Long id,
 
 
     public static MemberResponse from(MemberDto member) {
+        List<String> interest = member.interest() == null ? null : member.interest().stream().map(InterestDto::interest).toList();
+        List<String> skill = member.skill() == null ? null : member.skill().stream().map(SkillDto::skillName).toList();
+
         return new MemberResponse(member.id(),
                 member.userProviderId(),
                 member.username(),
@@ -27,7 +30,7 @@ public record MemberResponse(Long id,
                 member.registrationSource(),
                 member.intro(),
                 member.imgUrl(),
-                member.interest().stream().map(InterestDto::interest).toList(),
-                member.skill().stream().map(SkillDto::skillName).toList());
+                interest,
+                skill);
     }
 }

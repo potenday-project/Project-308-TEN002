@@ -9,6 +9,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,7 +37,6 @@ public class Member extends BaseEntity {
     private LocalDateTime lastLogin;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
-    @Setter
     List<Interest> interests = new ArrayList<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
     List<SkillMember> skills = new ArrayList<>();
@@ -66,16 +66,28 @@ public class Member extends BaseEntity {
         this.skills = skills;
     }
 
-    public void updateMember(String username, Position position, String intro, String imgUrl) {
+    public void updateMembeInfo(String username, String intro, List<SkillMember> skills) {
         this.username = username == null ? this.username : username;
-        this.position = position == null ? this.position : position;
         this.intro = intro == null ? this.intro : intro;
-        this.imgUrl = imgUrl == null ? this.imgUrl : imgUrl;
+        this.skills.clear();
+        this.skills.addAll(skills);
+    }
+
+    public void updateMembeInfo(String username, String intro) {
+        this.username = username == null ? this.username : username;
+        this.intro = intro == null ? this.intro : intro;
     }
 
     public void updateSkillAndInterests(List<Interest> interests, List<SkillMember> skills) {
-        this.interests = interests;
-        this.skills = skills;
+        this.interests.clear();
+        this.interests.addAll(interests);
+        this.skills.clear();
+        this.skills.addAll(skills);
+    }
+
+    public void updateInterests(List<Interest> interests) {
+        this.interests.clear();
+        this.interests.addAll(interests);
     }
 
     public void updateLastLoginTime() {

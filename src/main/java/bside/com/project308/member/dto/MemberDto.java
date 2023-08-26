@@ -3,6 +3,7 @@ package bside.com.project308.member.dto;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.constant.RegistrationSource;
 import bside.com.project308.member.entity.Member;
+import bside.com.project308.member.entity.SkillMember;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +30,19 @@ public record MemberDto(Long id,
                 member.getImgUrl(),
                 null,
                 null);
+    }
+
+    public static MemberDto from(Member member, List<SkillDto> skill) {
+        return new MemberDto(member.getId(),
+                member.getUserProviderId(),
+                member.getUsername(),
+                member.getPassword(),
+                member.getPosition(),
+                member.getRegistrationSource(),
+                member.getIntro(),
+                member.getImgUrl(),
+                null,
+                skill);
     }
 
     public static MemberDto from(Member member, List<InterestDto> interest, List<SkillDto> skill) {
