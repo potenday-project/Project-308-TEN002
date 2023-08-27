@@ -62,7 +62,7 @@ public class SecurityConfig {
                                     //.requestMatchers(new AntPathRequestMatcher("/.well-known/pki-validation/**")).permitAll()
                                     //.requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll()
                                     .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                                    .requestMatchers(new AntPathRequestMatcher("/subscribe/**")).permitAll()
+                                    .requestMatchers(new AntPathRequestMatcher("/subscribe/test/**")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/avatar/**")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/member/skill"), new AntPathRequestMatcher("/member/default-img")).permitAll()
                                     .requestMatchers(new AntPathRequestMatcher("/member/sign-up"), new AntPathRequestMatcher("/member/skill", "GET")).permitAll()

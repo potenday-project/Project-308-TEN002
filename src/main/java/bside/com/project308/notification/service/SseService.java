@@ -46,7 +46,6 @@ public class SseService {
             log.debug("test created");
             sseTest.sseTestSend(memberId, emitter);
         }*/
-
         return emitter;
     }
 
@@ -67,9 +66,9 @@ public class SseService {
         try {
             emitter.send(SseEmitter
                     .event()
-
                     .id(eventId)
-                    .data(objectMapper.writeValueAsString(response))
+                    .data(response)
+                    
 
             );
             log.info("sse send log : {}", response.getData());

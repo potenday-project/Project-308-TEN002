@@ -5,11 +5,13 @@ import bside.com.project308.common.response.Response;
 import bside.com.project308.match.service.SwipeService;
 import bside.com.project308.member.constant.Position;
 import bside.com.project308.member.contoller.usecase.SingUpMemberAndSetDefaultMatch;
+import bside.com.project308.member.dto.InterestDto;
 import bside.com.project308.member.dto.response.ImgResponse;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.request.MemberUpdateRequest;
 import bside.com.project308.member.dto.request.SignUpRequest;
 import bside.com.project308.member.dto.response.MemberResponse;
+import bside.com.project308.member.dto.response.MemberUpdateResponse;
 import bside.com.project308.member.service.MemberService;
 import bside.com.project308.member.service.SkillService;
 import bside.com.project308.security.security.UserPrincipal;
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,10 +44,24 @@ public class MemberController {
     }
 
 
-    @PutMapping
-    public ResponseEntity<Response> updateMember(@AuthenticationPrincipal UserPrincipal userPrincipal,
+
+    @PatchMapping("/interest")
+    public ResponseEntity<Response> updateInterest(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                 @RequestParam List<Position> positions) {
+        if (CollectionUtils.isEmpty(positions)) {
+            ResponseEntity.status(HttpStatus.OK).body(Response.failResponse(ResponseCode.MEMBER_UPDATE_FAIL.getCode(), "관심정보는 필수값입니다."));
+        }
+
+        List<InterestDto> interestDtos = memberService.updateInterest(userPrincipal.id(), positions);
+        List<String> strings = interestDtos.stream().map(InterestDto::interest).toList();
+        return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.MEMBER_UPDATE_SUCCESS.getCode(), strings));
+    }
+
+
+    @PatchMapping("/info")
+    public ResponseEntity<Response> updateMemberInfo(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                  @RequestBody MemberUpdateRequest memberUpdateRequest) {
-        MemberDto updatedMember = memberService.update(userPrincipal.id(), memberUpdateRequest);
+        MemberDto updatedMember = memberService.updateMemberInfo(userPrincipal.id(), memberUpdateRequest);
 
         return ResponseEntity.status(HttpStatus.OK).body(Response.success(ResponseCode.MEMBER_UPDATE_SUCCESS.getCode(), MemberResponse.from(updatedMember)));
     }

@@ -22,6 +22,7 @@ public enum ResponseCode {
     LOGIN_FAIL(HttpStatus.OK, 4102, "기존 가입 정보가 없습니다"),
     SIGN_UP_FAIL(HttpStatus.OK, 4103, "회원 가입에 실패했습니다"),
     BAD_LOGIN_ACCESS(HttpStatus.OK, 4104, "비정상 로그인 시도입니다"),
+    MEMBER_UPDATE_FAIL(HttpStatus.OK, 4105, "사용자 정보 업데이트에 실패했습니다."),
     MATCH_COUNT_EXHAUSTED(HttpStatus.OK, 4201, "매칭 횟수를 모두 소모했습니다"),
     NO_MORE_PARTNER(HttpStatus.OK, 4202, "매칭 대상자가 더이상 없습니다."),
     MATCH_NOT_FOUND(HttpStatus.OK, 4203, "해당하는 매치 정보가 없습니다"),

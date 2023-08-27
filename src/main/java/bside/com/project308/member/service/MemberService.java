@@ -6,8 +6,8 @@ import bside.com.project308.common.config.CacheConfig;
 import bside.com.project308.common.constant.ResponseCode;
 import bside.com.project308.common.exception.DuplicatedMemberException;
 import bside.com.project308.common.exception.ResourceNotFoundException;
-import bside.com.project308.match.repository.MatchRepository;
 import bside.com.project308.member.constant.Position;
+import bside.com.project308.member.constant.SkillCategory;
 import bside.com.project308.member.dto.InterestDto;
 import bside.com.project308.member.dto.MemberDto;
 import bside.com.project308.member.dto.SkillDto;
@@ -60,10 +60,48 @@ public class MemberService {
         return new HashSet<>(memberRepository.findInitialMemberProByUserProviderIdIn(teckyMemberId));
     }
 
-    public Member getMemberWithInterest(Long memberId) {
+    private Member getMemberWithInterest(Long memberId) {
         Member member = getMemberById(memberId);
-        List<Interest> byMember = interestRepository.findByMember(member);
+        interestRepository.findByMember(member);
         return member;
+    }
+
+    public List<InterestDto> updateInterest(Long memberId, List<Position> positions) {
+        Member member = getMemberWithInterest(memberId);
+        member.getInterests().clear();
+        //interestRepository.deleteAllInBatch(member.getInterests());
+        List<Interest> interests = positions.stream().map(position -> Interest.of(position.name(), member)).toList();
+        interestRepository.saveAll(interests);
+        member.updateInterests(interests);
+        return interests.stream().map(InterestDto::from).toList();
+    }
+
+    //todo: 쿼리dsl로 변경
+    public MemberDto updateMemberInfo(Long memberId, MemberUpdateRequest memberUpdateRequest) {
+        Member member = getMemberWithInterest(memberId);
+
+        if (!CollectionUtils.isEmpty(memberUpdateRequest.skill())) {
+            List<SkillMember> updatedSkills = deleteCurrentSkillMemberAndCreateNewSkillMember(memberUpdateRequest, member);
+            List<SkillDto> skillDtos = updatedSkills.stream().map(SkillMember::getSkill)
+                                                    .map(SkillDto::from)
+                                                    .toList();
+            member.updateMembeInfo(memberUpdateRequest.username(), memberUpdateRequest.intro(), updatedSkills);
+            return MemberDto.from(member, skillDtos);
+        }else{
+            member.updateMembeInfo(memberUpdateRequest.username(), memberUpdateRequest.intro());
+            return MemberDto.from(member);
+        }
+    }
+
+    private List<SkillMember> deleteCurrentSkillMemberAndCreateNewSkillMember(MemberUpdateRequest memberUpdateRequest, Member member) {
+        //Set<SkillMember> currentSkillSet = skillMemberRepository.findSetSkillByMember(member);
+        //skillMemberRepository.deleteAllInBatch(currentSkillSet);
+        List<Skill> skills = skillRepository.findBySkillNameIn(memberUpdateRequest.skill());
+        List<SkillMember> updatedSkills = skills.stream()
+                                                             .map(skill -> SkillMember.of(skill, member))
+                                                             .toList();
+        skillMemberRepository.saveAll(updatedSkills);
+        return updatedSkills;
     }
 
 
@@ -133,44 +171,7 @@ public class MemberService {
         member.updateSkillAndInterests(interests, skillMember);
     }
 
-    public MemberDto update(Long memberId, MemberUpdateRequest memberUpdateRequest) {
-        Member member = getMember(memberId);
 
-        member.updateMember(
-                memberUpdateRequest.username(),
-                Position.valueOf(memberUpdateRequest.position()),
-                memberUpdateRequest.intro(),
-                memberUpdateRequest.imgUrl());
-
-        Collection<Skill> skills = updateSkill(memberUpdateRequest, member).stream().map(SkillMember::getSkill).toList();
-        Collection<Interest> interests = updateInterest(memberUpdateRequest, member);
-
-
-        return MemberDto.from(member,
-                interests.stream().map(InterestDto::from).toList(),
-                skills.stream().map(SkillDto::from).toList());
-    }
-
-    private Collection<Interest> updateInterest(MemberUpdateRequest memberUpdateRequest, Member member) {
-        //todo: 입력값 검증할 것이므로 삭제 예정 코드
-        if (CollectionUtils.isEmpty(memberUpdateRequest.interest())) {
-           return interestRepository.findSetByMember(member);
-        }
-        Set<String> interestUpdate = new HashSet(memberUpdateRequest.interest());
-
-        //Set<Interest> interestUpdate = memberUpdateRequest.interest().stream().map(interest -> Interest.of(interest, member)).collect(Collectors.toSet());
-        Set<Interest> interestSet = interestRepository.findSetByMember(member);
-        Set<String> interests = interestSet.stream().map(Interest::getInterest).collect(Collectors.toSet());
-        if (!CollectionUtils.isEmpty(interestUpdate) && !interests.equals(interestUpdate)) {
-
-            interestRepository.deleteAllInBatch(interestSet);
-            List<Interest> updateResult = interestUpdate.stream().map(interest -> Interest.of(interest, member)).toList();
-            interestRepository.saveAll(updateResult);
-            return updateResult;
-        }
-
-        return interestSet;
-    }
 
     private Collection<SkillMember> updateSkill(MemberUpdateRequest memberUpdateRequest, Member member) {
         //todo: 입력값 검증할 것이므로 삭제 예정 코드
